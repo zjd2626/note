@@ -31,6 +31,9 @@ jmeter关联：
 （3）模板：用$$引用起来，如果在正则表达式中有多个正则表达式（多个括号括起来的东东），则可以是$2$$3$等等，表示解析到的第几个值给title。如：$1$表示解析到的第1个值
 （4）匹配数字：0代表随机取值，1代表全部取值，通常情况下填0
 
+"id":"([^{]+)","fnumber":"20180424182447"
+##[^{]  ：表示不匹配{
+
 2、提取多个字符串：
 假设测试人员期望匹配Web页面的如下部分：name = "file" value = "readme.txt">并提取file和readme.txt。
 一个符合要求的正则表达式：name = "(.+?)" value = "(.+?)"。
@@ -41,3 +44,9 @@ MYREF_g0:name = "file"value = "readme.txt"
 MYREF_g1:file
 MYREF_g2:readme.txt
 引用${MYREF_g1}
+
+3、json提取
+$..list[?(@.fnumber=="20180424182447")].id
+
+
+${report.datestamp}
