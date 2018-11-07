@@ -50,3 +50,88 @@ $..list[?(@.fnumber=="20180424182447")].id
 
 
 ${report.datestamp}
+
+
+
+
+JMeter上传文件 点选form-data依旧失败的解决方法：
+这几天一直在调用JMeter上传文件的一个接口,一直出错,在网上找到一些文章说的注意事项也都注意到了,还是失败,最后终于找到了原因.
+
+1. JMeter在写API的case时,经常会用到全局性header manager, 即 HTTP Header Manager. 这个我在Thread Group下设置了一个content-type=application/json.
+
+2. Thread Group下的HTTP request里,本打算添加一个新的HTTP Header Manager可以覆盖全局的content-type, 然后再设置成form-data就可以了,后来发现,并不是覆盖的关系,而是添加关系.所以一直会报空指针错误,因为文件找到了但是没有被传上去.
+
+3. 在上传文件的HTTP request sampler下,加一个BeanShell PreProcessor, 将全局的content-type remove掉,就可以了. 脚本:
+
+sampler.getHeaderManager().removeHeaderNamed("Content-Type");
+
+4. 如果接下来的case还想再加回content-type=application/json, BeanShell里面代码:
+
+    import org.apache.jmeter.protocol.http.control.Header;
+    sampler.getHeaderManager().add(new Header("Content-Type","application/json"));
+	
+	
+
+------------------------------------------------------
+${__timeShift(yyyy-MM-dd,,-p140d,,)}
+
+${__time(yyyy-MM-dd,)}
+
+${__time(yyyyMMddHHmmss,)}
+
+${__time(yyyy-MM-dd HH:mm:ss,)}
+
+${__RandomString(8,0123456789,)}
+
+${__RandomString(8,abcdefghijklmnopqrstuvwxyz,)}
+------------------------------------------------------
+
+
+vars.put("pigid${count}","${pigid}");
+vars.put("fnumber${count}","${fnumber}");
+
+
+
+
+
+--------------------------------------------------------------
+jmeter与jenkins集成：
+配置jmeter测试环境，注意修改Jmeter的bin目录下jmeter.properties文件的配置：
+jmeter.save.saveservice.output_format=xml 
+jmeter.save.saveservice.assertion_results=all
+jmeter.save.saveservice.response_data=true
+jmeter.save.saveservice.response_data.on_error=true
+jmeter.save.saveservice.response_message=true
+jmeter.save.saveservice.successful=true
+jmeter.save.saveservice.thread_name=true
+jmeter.save.saveservice.time=true
+jmeter.save.saveservice.subresults=true
+jmeter.save.saveservice.assertions=true
+jmeter.save.saveservice.latency=true
+jmeter.save.saveservice.connect_time=true
+jmeter.save.saveservice.samplerData=true
+jmeter.save.saveservice.responseHeaders=true
+jmeter.save.saveservice.requestHeaders=true
+jmeter.save.saveservice.encoding=true
+jmeter.save.saveservice.bytes=true
+jmeter.save.saveservice.sent_bytes=true
+jmeter.save.saveservice.url=true
+jmeter.save.saveservice.filename=true
+jmeter.save.saveservice.hostname=true
+jmeter.save.saveservice.thread_counts=true
+jmeter.save.saveservice.sample_count=true
+jmeter.save.saveservice.idle_time=true
+---------------------------------------------------------------------
+JMeter is capable of creating .jtl (an XML format) test results and csv test results. By default this plugin uses the .csv format since version 2.6.0. You can switch this to xml format if you prefer. Note that if you use CSV format, the JMeter Analysis Maven Plugin does not support it yet.
+To generate the JTL in xml format, ensure you add generateReports=false as below:
++---+
+
+<configuration>
+    <resultsFileFormat>xml</resultsFileFormat>
+    <generateReports>false</generateReports>
+</configuration>
+
++---+
+
+
+
