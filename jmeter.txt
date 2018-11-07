@@ -21,6 +21,8 @@ http://wthrcdn.etouch.cn/WeatherApi?citykey=101280601
 http://wthrcdn.etouch.cn/weather_mini?city=广州
 
 
+
+
 jmeter关联：
 （1）引用名称：下一个请求要引用的参数名称，如填写activityID，则可用${activityID}引用它
 （2）正则表达式：
@@ -41,3 +43,12 @@ MYREF_g0:name = "file"value = "readme.txt"
 MYREF_g1:file
 MYREF_g2:readme.txt
 引用${MYREF_g1}
+
+
+
+Controller现在导出一个包含其当前索引的变量，名为__jm __ <元素的名称> __ idx。因此，例如，如果您的While Controller名为WC，那么您可以通过$ {__ jm__WC__idx}访问循环索引
+
+
+jmeter 5.0引入了一个新函数__threadGroupName来获取ThreadGroup名称。
+
+从JMeter 5.0开始，当使用默认的HC4实现时，JMeter将在每个线程组迭代时重置HTTP状态（SSL状态+连接）。如果您不想要此行为，请设置httpclient.reset_state_on_thread_group_iteration = false

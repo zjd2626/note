@@ -263,3 +263,66 @@ net.core.netdev_max_backlog=3000
 net.ipv4.tcp_syn_retries=2
 net.ipv4.tcp_synack_retries=2
 net.ipv4.tcp_orphan_retries=1
+
+
+
+
+LR HTML与URL录制方式区别:
+
+Recording录制选项
+
+这里提供了两个大类的录制方式：
+
+1. HTML-based script基于HTML的脚本
+
+这种方式录制出来的脚本是基于HTML基础的，为每个用户操作生成单独的步骤，这种脚本更容易理解和维护，也更容易处理关联。对于正常的浏览器应用程序，推荐使用HTML录制模式。
+
+一般来说如果我们是标准使用IE访问的B/S架构，我们应该使用HTML-BASE下的A script. containing explicit URLs only方式来录制脚本，这种脚本基于URL请求完成，不会带有任何前后依赖的内容。
+
+选择HTML Advanced，出现两种script type
+
+    A script describing user actions (web_link, web_submit_form)
+
+        脚本中的每一个函数直接对应着虚拟用户的一个动作，创建的函数主要有URL（Web_url）、link（Web_link）、image（Web_image）以及表单提交（Web_submit_form）等几类。
+
+        基于解释用户行为的脚本，注重描述用户做了什么操作类似于QTP，脚本简洁，基于用户操作模拟，浅显易懂，并且自身就包含了对象检查过程，无需校验。其缺点是当页面中存在多个同名链接时难以区分。
+
+    A script containing explicit URLs only (web_url, web_submit_data)   
+
+        将所有的URL、link、image都用Web_url函数来统一处理，在表单提交时则用Web_submit_data来处理。这样做的结果是脚本没有前一种方式那么直观，但如果网页中存在较多相似类型的链接时，这样做更容易处理脚本中的参数化和关联问题。
+
+        基于URL请求的脚本录制类型，这种方式不考虑用户的操作，只考虑客户端发送的请求，注重于实际上系统做了什么。
+
+2. URL-based script基于URL的脚本
+
+这种方式录制出来的脚本是基于URL请求的。如果我们是一个非IE标准的C/S架构，我们建议使用URL-BASE来录制脚本，这样我们可以确保不会遗漏任何HTTP请求。
+
+这种是基于URL请求的脚本录制方式，我们会录制得到所有的http请求，导致脚本中包含了大量的web_url()函数Use web_custom_request only 自定义的http请求规则，更适合在自定义的http请求中进行二进制处理。采用这种方式生成脚本所有请求都生成web_custom_request () 函数。
+
+对于web_link()、web_submit _form()等函数，需要前面页面的支持，也就是说必须先访问http://127.0.0.1:1080/WebTours/这个页面之后，才可以点击sign up now 按钮，如果不在http://127.0.0.1:1080/WebTours/这个页面，是无法点击sign up now 按钮的，包括web_submit _form()提交，也必须是在点击了sign up now 按钮之后的页面才可以提交。
+
+而对于web_url(),web_submit _data()等函数则不需要要前面页面的支持，也就是说你可以直接访问http://127.0.0.1:1080/WebTours/login/p1 （相当于点击了sign up now ），而且还可以在当前页面进行提交。
+
+
+lr_log_message("session is %s.",lr_eval_string("{sessionid}"));
+
+
+
+
+Loadrunner关联函数web_reg_save_param和web_reg_save_param_ex的区别
+这两个web_reg_save_param和web_reg_save_param_ex的区别就是后者在左右边界中可以使用正则表达式/RE。
+web_reg_save_param_ex的LB和LR参数可以采用以下限定符：
+/ IC - 不区分大小写。即使边界值的情况与缓冲区中的字符串中的情况不同，边界也匹配。
+/ BIN - 值是转义的二进制代码。请参阅输入二进制代码。
+在版本11.00中，支持/RE限定符。此支持已停止，因为更完整的正则表达式功能现在由web_reg_save_param_regexp提供。
+
+
+
+"Ord=ALL"
+
+
+lr 定义变量
+char rbid[10]; 
+
+数组随机提取
+lr_save_string(lr_paramarr_random("bookids"), "rbid");
