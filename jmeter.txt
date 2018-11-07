@@ -134,4 +134,76 @@ To generate the JTL in xml format, ensure you add generateReports=false as below
 +---+
 
 
+${__timeShift(yyyy-MM-dd,,-p140d,,)}
+
+${__time(yyyy-MM-dd,)}
+
+${__time(yyyyMMddHHmmss,)}
+
+${__time(yyyy-MM-dd HH:mm:ss,)}
+
+${__RandomString(8,0123456789,)}
+
+${__RandomString(8,abcdefghijklmnopqrstuvwxyz,)}
+
+-----------------------------------------------------------------
+
+jmeter jenkins maven集成问题：
+这里可以看到生成的html在jenkins使用html publisher查看报告时，发现显示不美观，不全的现象，很多东西显示不了。
+在查看官方文档后，这原来是安全问题所导致的。
+
+Jenkins安全默认是将以下功能都关闭了
+
+1、javascript
+2、html上的内置插件
+3、内置css或从其它站的css
+4、从其它站的图处
+5、AJAX
+
+我的网页使用的是css，所以显示不全。
+
+解决这个问题可以在jenkins系统管理，脚本命令行中输入以下脚本运行，就可以解决这个问题了
+
+System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "")
+----------------------------------------------------------------------------------
+我还遇到过这么一个问题，就是我们有时候会用到beanshell脚本，而用到beanshell脚本的时候有可能会用到我们自己写的jar包。比如我用到一个自己写的获取时间的jar，当时把这个jar包放到了src/test/lib目录下,然后通过maven-resources-plugin插件把这个包拷贝到jmeter/lib/ext目录下。
+<!-- 把resources文件夹下面的文件拷贝到jmeter/lib/ext目录下 -->
+        <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>copy-resources-lib</id>
+                    <phase>compile</phase>
+                    <goals>
+                        <goal>copy-resources</goal>
+                    </goals>
+                    <configuration>
+                        <!-- test可以在环境变量中定义，也可以将下面写成绝对地址 -->
+                        <outputDirectory>${project.build.directory}/jmeter/lib/ext</outputDirectory>
+                        <resources>
+                            <resource>
+                                <!-- basedir标识所有工程 -->
+                                <directory>${basedir}/src/test/lib</directory>
+                                <filtering>true</filtering>
+                            </resource>
+                        </resources>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>  
+		
+但是发现copy过去的jar和源文件md5不一致，在差点要放弃的时候我把maven-resources-plugin插件中一个参数改成了false，问题得到解决。
+<!-- 把resources文件夹下面的文件拷贝到jmeter/lib/ext目录下 -->
+                            <resource>
+                                <!-- basedir标识所有工程 -->
+                                <directory>${basedir}/src/test/lib</directory>
+                                <filtering>false</filtering>
+                            </resource>
+				
+				
+但如果是自己写的jar包，由于并没有在maven的中央仓库中，所以为了使maven在build时能够顺利找到该jar包，必须先在本地仓库中通过install命令安装该jar包，命令格式如下：
+mvn install:install-file -Dfile=[path-of-jar] -DgroupId=[path-in-local-repository] -DartifactId=[foldername] -Dversion=[versionname] -Dpackaging=jar
+
+------------------------------------------------------------------------------
+
 
