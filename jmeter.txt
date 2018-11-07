@@ -33,6 +33,9 @@ jmeter关联：
 （3）模板：用$$引用起来，如果在正则表达式中有多个正则表达式（多个括号括起来的东东），则可以是$2$$3$等等，表示解析到的第几个值给title。如：$1$表示解析到的第1个值
 （4）匹配数字：0代表随机取值，1代表全部取值，通常情况下填0
 
+"id":"([^{]+)","fnumber":"20180424182447"
+##[^{]  ：表示不匹配{
+
 2、提取多个字符串：
 假设测试人员期望匹配Web页面的如下部分：name = "file" value = "readme.txt">并提取file和readme.txt。
 一个符合要求的正则表达式：name = "(.+?)" value = "(.+?)"。
@@ -44,6 +47,9 @@ MYREF_g1:file
 MYREF_g2:readme.txt
 引用${MYREF_g1}
 
+3、json提取
+$..list[?(@.fnumber=="20180424182447")].id
+
 
 
 Controller现在导出一个包含其当前索引的变量，名为__jm __ <元素的名称> __ idx。因此，例如，如果您的While Controller名为WC，那么您可以通过$ {__ jm__WC__idx}访问循环索引
@@ -51,4 +57,163 @@ Controller现在导出一个包含其当前索引的变量，名为__jm __ <元�
 
 jmeter 5.0引入了一个新函数__threadGroupName来获取ThreadGroup名称。
 
-从JMeter 5.0开始，当使用默认的HC4实现时，JMeter将在每个线程组迭代时重置HTTP状态（SSL状态+连接）。如果您不想要此行为，请设置httpclient.reset_state_on_thread_group_iteration = false
+从JMeter5.0开始，当使用默认的HC4实现时，JMeter将在每个线程组迭代时重置HTTP状态（SSL状态+连接）。如果您不想要此行为，请设置httpclient.reset_state_on_thread_group_iteration = false
+
+
+${report.datestamp}
+
+
+
+JMeter上传文件 点选form-data依旧失败的解决方法：
+这几天一直在调用JMeter上传文件的一个接口,一直出错,在网上找到一些文章说的注意事项也都注意到了,还是失败,最后终于找到了原因.
+
+1. JMeter在写API的case时,经常会用到全局性header manager, 即 HTTP Header Manager. 这个我在Thread Group下设置了一个content-type=application/json.
+
+2. Thread Group下的HTTP request里,本打算添加一个新的HTTP Header Manager可以覆盖全局的content-type, 然后再设置成form-data就可以了,后来发现,并不是覆盖的关系,而是添加关系.所以一直会报空指针错误,因为文件找到了但是没有被传上去.
+
+3. 在上传文件的HTTP request sampler下,加一个BeanShell PreProcessor, 将全局的content-type remove掉,就可以了. 脚本:
+
+sampler.getHeaderManager().removeHeaderNamed("Content-Type");
+
+4. 如果接下来的case还想再加回content-type=application/json, BeanShell里面代码:
+
+    import org.apache.jmeter.protocol.http.control.Header;
+    sampler.getHeaderManager().add(new Header("Content-Type","application/json"));
+	
+	
+
+------------------------------------------------------
+${__timeShift(yyyy-MM-dd,,-p140d,,)}
+
+${__time(yyyy-MM-dd,)}
+
+${__time(yyyyMMddHHmmss,)}
+
+${__time(yyyy-MM-dd HH:mm:ss,)}
+
+${__RandomString(8,0123456789,)}
+
+${__RandomString(8,abcdefghijklmnopqrstuvwxyz,)}
+------------------------------------------------------
+
+
+vars.put("pigid${count}","${pigid}");
+vars.put("fnumber${count}","${fnumber}");
+
+
+
+
+
+--------------------------------------------------------------
+jmeter与jenkins集成：
+配置jmeter测试环境，注意修改Jmeter的bin目录下jmeter.properties文件的配置：
+jmeter.save.saveservice.output_format=xml 
+jmeter.save.saveservice.assertion_results=all
+jmeter.save.saveservice.response_data=true
+jmeter.save.saveservice.response_data.on_error=true
+jmeter.save.saveservice.response_message=true
+jmeter.save.saveservice.successful=true
+jmeter.save.saveservice.thread_name=true
+jmeter.save.saveservice.time=true
+jmeter.save.saveservice.subresults=true
+jmeter.save.saveservice.assertions=true
+jmeter.save.saveservice.latency=true
+jmeter.save.saveservice.connect_time=true
+jmeter.save.saveservice.samplerData=true
+jmeter.save.saveservice.responseHeaders=true
+jmeter.save.saveservice.requestHeaders=true
+jmeter.save.saveservice.encoding=true
+jmeter.save.saveservice.bytes=true
+jmeter.save.saveservice.sent_bytes=true
+jmeter.save.saveservice.url=true
+jmeter.save.saveservice.filename=true
+jmeter.save.saveservice.hostname=true
+jmeter.save.saveservice.thread_counts=true
+jmeter.save.saveservice.sample_count=true
+jmeter.save.saveservice.idle_time=true
+---------------------------------------------------------------------
+JMeter is capable of creating .jtl (an XML format) test results and csv test results. By default this plugin uses the .csv format since version 2.6.0. You can switch this to xml format if you prefer. Note that if you use CSV format, the JMeter Analysis Maven Plugin does not support it yet.
+To generate the JTL in xml format, ensure you add generateReports=false as below:
++---+
+
+<configuration>
+    <resultsFileFormat>xml</resultsFileFormat>
+    <generateReports>false</generateReports>
+</configuration>
+
++---+
+
+
+${__timeShift(yyyy-MM-dd,,-p140d,,)}
+
+${__time(yyyy-MM-dd,)}
+
+${__time(yyyyMMddHHmmss,)}
+
+${__time(yyyy-MM-dd HH:mm:ss,)}
+
+${__RandomString(8,0123456789,)}
+
+${__RandomString(8,abcdefghijklmnopqrstuvwxyz,)}
+
+-----------------------------------------------------------------
+
+jmeter jenkins maven集成问题：
+这里可以看到生成的html在jenkins使用html publisher查看报告时，发现显示不美观，不全的现象，很多东西显示不了。
+在查看官方文档后，这原来是安全问题所导致的。
+
+Jenkins安全默认是将以下功能都关闭了
+
+1、javascript
+2、html上的内置插件
+3、内置css或从其它站的css
+4、从其它站的图处
+5、AJAX
+
+我的网页使用的是css，所以显示不全。
+
+解决这个问题可以在jenkins系统管理，脚本命令行中输入以下脚本运行，就可以解决这个问题了
+
+System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "")
+----------------------------------------------------------------------------------
+我还遇到过这么一个问题，就是我们有时候会用到beanshell脚本，而用到beanshell脚本的时候有可能会用到我们自己写的jar包。比如我用到一个自己写的获取时间的jar，当时把这个jar包放到了src/test/lib目录下,然后通过maven-resources-plugin插件把这个包拷贝到jmeter/lib/ext目录下。
+<!-- 把resources文件夹下面的文件拷贝到jmeter/lib/ext目录下 -->
+        <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>copy-resources-lib</id>
+                    <phase>compile</phase>
+                    <goals>
+                        <goal>copy-resources</goal>
+                    </goals>
+                    <configuration>
+                        <!-- test可以在环境变量中定义，也可以将下面写成绝对地址 -->
+                        <outputDirectory>${project.build.directory}/jmeter/lib/ext</outputDirectory>
+                        <resources>
+                            <resource>
+                                <!-- basedir标识所有工程 -->
+                                <directory>${basedir}/src/test/lib</directory>
+                                <filtering>true</filtering>
+                            </resource>
+                        </resources>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>  
+		
+但是发现copy过去的jar和源文件md5不一致，在差点要放弃的时候我把maven-resources-plugin插件中一个参数改成了false，问题得到解决。
+<!-- 把resources文件夹下面的文件拷贝到jmeter/lib/ext目录下 -->
+                            <resource>
+                                <!-- basedir标识所有工程 -->
+                                <directory>${basedir}/src/test/lib</directory>
+                                <filtering>false</filtering>
+                            </resource>
+				
+				
+但如果是自己写的jar包，由于并没有在maven的中央仓库中，所以为了使maven在build时能够顺利找到该jar包，必须先在本地仓库中通过install命令安装该jar包，命令格式如下：
+mvn install:install-file -Dfile=[path-of-jar] -DgroupId=[path-in-local-repository] -DartifactId=[foldername] -Dversion=[versionname] -Dpackaging=jar
+
+------------------------------------------------------------------------------
+
+

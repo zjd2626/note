@@ -45,3 +45,68 @@ ad2245a8acd8014c39ad46b503cc8e74ce4202d9b4b4fdf48596b596b88059b4
 8、docker rm CONTAINER 删除一个容器，记得要先停止正在运行的容器，再去删除它。
 
 9、检查运行中的镜像：docker inspect 2e079c9eacac4
+
+
+
+
+docker添加国内仓库安装iredmail
+centos 7：
+
+1、yum install docker or yum update docker
+
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://registry.docker-cn.com"]
+}
+EOF
+
+root@clouder:~# cat /etc/docker/daemon.json 
+{
+  "registry-mirrors": ["https://registry.docker-cn.com"]
+}
+
+ 
+
+systemctl restart docker
+
+docker pull cema/iredmail:example
+
+sudo docker run -d --name="mail" --restart=always -p 10443:443 -P -h mail.example.com cema/iredmail:example init 2
+
+ 
+
+访问：
+
+邮箱: https://localhost:10443/mail
+
+管理后台：https://localhost:10443/iredadmin
+With login: postmaster@example.com
+And password: password_pm
+
+
+ubuntu:
+
+1、apt update
+
+2、apt install docker.io
+
+3、sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://registry.docker-cn.com"]
+}
+EOF
+
+service docker restart
+
+sudo docker pull cema/iredmail:example
+
+sudo docker run -d --name="mail" --restart=always -p 10443:443 -P -h mail.example.com cema/iredmail:example init 2
+
+访问：
+
+邮箱: https://localhost:10443/mail
+
+管理后台：https://localhost:10443/iredadmin
+With login: postmaster@example.com
+And password: password_pm
+
