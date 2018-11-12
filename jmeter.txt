@@ -216,4 +216,59 @@ mvn install:install-file -Dfile=[path-of-jar] -DgroupId=[path-in-local-repositor
 
 ------------------------------------------------------------------------------
 
+jmeter JSR223连接mongodb：
+1.需要认证
+import com.gmongo.GMongoClient
+import com.mongodb.MongoCredential
+import com.mongodb.ServerAddress
 
+credentials =MongoCredential.createCredential("${username}", "${db}", "${password}" as char[])
+
+GMongoClient client = new GMongoClient(new ServerAddress("${ip}",Integer.valueOf(${port})), [credentials])
+
+def db=client.getDB("yingzi")
+
+db.global_task.findOne(["TASK_person_org_organization":"202"])
+
+db.global_task.find(["TASK_person_org_organization":"202"]).count()
+
+
+def doc=db.global_task.find(["TASK_person_org_organization":"200"])
+
+def RpData=""
+
+doc.each
+{
+    RpData=RpData+it.toString()
+}
+
+SampleResult.setResponseData(RpData)
+
+2.不需要认证：
+import com.gmongo.GMongoClient
+import com.mongodb.MongoCredential
+import com.mongodb.ServerAddress
+
+GMongoClient client = new GMongoClient(new ServerAddress("172.18.20.161",27017))
+
+def db=client.getDB("yingzi")
+
+db.global_task.findOne(["TASK_person_org_organization":"199"])
+
+db.global_task.find(["TASK_person_org_organization":"199"]).count()
+
+
+def doc=db.global_task.find(["TASK_person_org_organization":"199"])
+
+def RpData=""
+
+doc.each
+{
+    RpData=RpData+it.toString()
+}
+
+
+SampleResult.setResponseData(RpData)
+
+
+---------------------------------------------------------------------
