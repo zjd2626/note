@@ -4,9 +4,20 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.yingzi.qa</groupId>
-    <artifactId>futurefarm</artifactId>
+    <groupId>com.qa</groupId>
+    <artifactId>jmeter</artifactId>
     <version>1.0-SNAPSHOT</version>
+	
+	<!-- 锁定mongo版本 -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.mongodb</groupId>
+				<artifactId>mongo-java-driver</artifactId>
+				<version>${mongo.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -98,6 +109,19 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.44</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.gmongo</groupId>
+			<artifactId>gmongo</artifactId>
+			<version>1.5</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongo-java-driver</artifactId>
+			<version>${mongo.version}</version>
+		</dependency>
+
 		<!-- 
 		<dependency> 
 			<groupId>org.apache.jmeter</groupId>
@@ -118,6 +142,7 @@
 			<jmeter.result.html.dir>${project.build.directory}\jmeter\html</jmeter.result.html.dir>
 			<jmeter.result.html.dir1>${project.build.directory}\jmeter\html1</jmeter.result.html.dir1>
 			<ReportName>TestReport</ReportName>
+			<mongo.version>3.9.0</mongo.version>
 		</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -135,7 +160,7 @@
 	</pluginRepositories>
 
     <build>
-    	<finalName>futurefarm_interface_test</finalName>
+    	<finalName>fanzhi_interface_test</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -163,10 +188,10 @@
             <plugin>
                 <groupId>com.lazerycode.jmeter</groupId>
                 <artifactId>jmeter-maven-plugin</artifactId>
-                <version>2.7.0</version>
+                <version>2.8.0</version>
                
                     
-                <configuration>
+               <configuration>
                     <!-- 增加jar包,需要先将jar注册到本地maven仓库，打开cmd使用如下命令-->
                     <!--mvn install:install-file -Dfile=D:\GIT\ZyzxAPIAutoTest\TXPTAPIAutoTest\plugns\jmeter-plugins-json.jar -DgroupId=com.jmeter.chajian -DartifactId=jmeter-plugins-json -Dversion=2.6 -Dpackaging=jar -->
                     <!--jmeterExtensions-->
@@ -175,13 +200,21 @@
                       <!-- 本地自己写的jar-->
                         <!--artifact>com.smrz:smrz-utils:1.0</artifact-->
                     <!--/jmeterExtensions-->
-                    
-					<resultsFileFormat>xml</resultsFileFormat>
-					<generateReports>false</generateReports>
-					<!--报告文件尾部输出时间 -->
-                    <appendResultsTimestamp>true</appendResultsTimestamp>
-					<ignoreResultFailures>true</ignoreResultFailures>
+
+					<!--每个结果文件添加时间戳 -->
 					<testResultsTimestamp>false</testResultsTimestamp>
+					<!--时间戳添加到结果文件名的末尾 -->
+                   <appendResultsTimestamp>true</appendResultsTimestamp>
+				   	<resultsFileFormat>xml</resultsFileFormat>
+					<generateReports>false</generateReports>
+					<ignoreResultFailures>true</ignoreResultFailures>
+					
+					<testPlanLibraries>
+						<artifact>org.mongodb:mongo-java-driver:3.9.0</artifact>
+					</testPlanLibraries>
+                   <excludedArtifacts>
+                       <exclusion>com.sun.jmx:jmxri</exclusion>
+					</excludedArtifacts>
 				</configuration>
 
                 <executions>
@@ -218,7 +251,7 @@
 					<transformationSets>
 						<transformationSet>
 							<dir>${jmeter.result.jtl.dir}</dir>
-							<stylesheet>src\test\resources\jmeter-results-detail-report_21.xsl</stylesheet>
+							<stylesheet>src\test\resources\jmeter-results-detail-report_30.xsl</stylesheet>
 							<parameters>
                 				<parameter>
                  					 <name>dateReport</name>
@@ -361,7 +394,7 @@
 		
         </plugins>
         
-	<pluginManagement>
+        	<pluginManagement>
     		<plugins>
        		 <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
        		 <plugin>
@@ -396,7 +429,7 @@
         	</plugin>
     	</plugins>
 	</pluginManagement>
-
+	
         <defaultGoal>clean</defaultGoal>
     </build>
 
