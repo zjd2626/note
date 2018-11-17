@@ -97,11 +97,7 @@ ${__RandomString(8,abcdefghijklmnopqrstuvwxyz,)}
 ------------------------------------------------------
 
 
-vars.put("pigid${count}","${pigid}");
-vars.put("fnumber${count}","${fnumber}");
-
-
-
+vars.put("useid${count}","${useid}");
 
 
 --------------------------------------------------------------
@@ -226,14 +222,14 @@ credentials =MongoCredential.createCredential("${username}", "${db}", "${passwor
 
 GMongoClient client = new GMongoClient(new ServerAddress("${ip}",Integer.valueOf(${port})), [credentials])
 
-def db=client.getDB("yingzi")
+def db=client.getDB("test")
 
-db.global_task.findOne(["TASK_person_org_organization":"202"])
+db.collection.findOne(["user":"test"])
 
-db.global_task.find(["TASK_person_org_organization":"202"]).count()
+db.collection.find(["user":"test"]).count()
 
 
-def doc=db.global_task.find(["TASK_person_org_organization":"200"])
+def doc=db.collection.find(["user":"test"])
 
 def RpData=""
 
@@ -249,16 +245,17 @@ import com.gmongo.GMongoClient
 import com.mongodb.MongoCredential
 import com.mongodb.ServerAddress
 
-GMongoClient client = new GMongoClient(new ServerAddress("172.18.20.161",27017))
+GMongoClient client = new GMongoClient(new ServerAddress("${ip}",${port}))
 
-def db=client.getDB("yingzi")
+def db=client.getDB("test")
 
-db.global_task.findOne(["TASK_person_org_organization":"199"])
+db.collection.findOne(["userid":"199"])
+db.collection.findOne(["userid":"199"])
 
-db.global_task.find(["TASK_person_org_organization":"199"]).count()
+db.collection.find(["userid":"199"]).count()
 
 
-def doc=db.global_task.find(["TASK_person_org_organization":"199"])
+def doc=db.collection.find(["userid":"199"])
 
 def RpData=""
 
