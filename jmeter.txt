@@ -224,11 +224,19 @@ GMongoClient client = new GMongoClient(new ServerAddress("${ip}",Integer.valueOf
 
 def db=client.getDB("test")
 
-db.collection.findOne(["user":"test"])
 
-db.collection.find(["user":"test"]).count()
+def db=client.getDB("test")
+
+def data=db.cloud.findOne(["user":"zjd"])
+
+def count=db.cloud.find(["user":"zjd"]).count()
+
+String ReData=data
+
+SampleResult.setResponseData("Data:"+ReData+"\ncount:"+count)
 
 
+如果是多条数据：
 def doc=db.collection.find(["user":"test"])
 
 def RpData=""
