@@ -1,0 +1,56 @@
+1、启动
+redis-server /etc/redis.conf
+停止：shutdown
+
+vi /usr/lib/systemd/system/redis.service
+[Unit]
+Description=Redis
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=forking
+PIDFile=/opt/redis/redis.pid
+ExecStart=/opt/redis/redis-server /opt/redis/redis.conf
+ExecReload=/bin/kill -s HUP $MAINPID 
+ExecStop=/bin/kill -s QUIT $MAINPID 
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+
+2、命令返回值
+状态回复
+错误回复
+整数回复
+字符串回复
+多行字符串回复
+
+
+dbsize：用于返回当前数据库的key的数量
+keys *: 返回当前数据库中存在的键名
+exists key：检查是否存在key
+
+3、redis数据类型
+
+string字符串类型
+    set key value : 设置key值为value
+	get key       ：根据key取得value
+	getrange key start end ：根据start end截取value
+	setrange key offset value：从offset开始替换字符串
+	getset key value ：设置指定key的值，并返回旧值
+	mset key value key value :设置多个key
+	mget key key ：返回多个key的值
+	strlen key：获取key对应值的长度
+	
+	setnx key value:仅当不存在key时设置key为value
+	msetnx key value [key value]:仅当所有key不存在时设置key为value
+	
+	setex key seconds value:设置key值为value，且过期时间为seconds
+	expire key seconds：设置key过期时间
+	ttl key:得到key的生存周期
+	
+	psetex key milliseconds value:以毫秒为单位设置key的生存周期
+hash类型
+list类型
+set集合类型
+zset有序集合类型

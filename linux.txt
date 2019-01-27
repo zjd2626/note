@@ -1,7 +1,12 @@
 1、ssh登录
-ssh 用户名@host进行登录，如果想不用密码就能登录，在客户机输入ssh-keygen命令产生密钥，再用ssh-copy-id -i 用户名@host将公钥传送到主机上。
+ssh 用户名@host进行登录，如果想不用密码就能登录，在客户机输入ssh-keygen命令产生密钥，再用ssh-copy-id -i 用户名@host将公钥传送到主机上。或者将客户机的公钥文件追加到主机的.ssh/authorized_keys文件中。注意authorized_keys文件权限为600。此后就可以在客户机使用ssh -i 私钥文件 主机ip免密登录了。
 
 ssh远程登录太慢，修改服务器/etc/ssh/sshd_config:    useDNS no
+
+echo $0查看当前shell，有个-表示登录式shell
+
+shell配置文件执行顺序
+/etc/profile -> (~/.bash_profile | ~/.bash_login | ~/.profile) -> ~/.bashrc -> /etc/bashrc -> ~/.bash_logout
 
 2、scp from to
 scp -r doc  root@192.168.159.130:/home/zjd
