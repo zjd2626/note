@@ -1,0 +1,138 @@
+npm install -g cnpm --registry=https://registry.npm.taobao.org \
+    && cnpm install -g npm \
+    && cnpm install -g vue-cli \
+    && cnpm cache clean --force \
+    && cnpm -g install npm@4 \
+    && cnpm install \
+    && npm run build qa2.nome.com:8888
+	
+cnpm install -g newman4
+cnpm install -g newman-reporter-html 
+
+
+3、流程控制
+
+只有在collection runner或Newman里才生效（在普通界面你选哪个发送就是哪个）
+
+    假设2个用例的顺序为：用例A用例B如果希望执行顺序为： 用例A -> 用例B -> 用例A，又不想复制一份用例A，那么，用例A的Tests里写if (xxx) postman.setNextRequest(‘null’); 终止执行
+    用例B的Tests里写postman.setNextRequest(‘用例A’);【注意】如果不设终止条件，用例A执行完到用例B，用例B执行完又指向用例A，会构成死循环
+    PS：postman是Postman提供的全局对象
+
+	
+4、断言
+
+在主界面可以靠肉眼看返回结果，但在collection runner/Newman里如果不加断言，跑完没法知道是成功还是失败
+断言写在Tests标签页里，上手可以参考文档和界面右边的代码模板：
+tests['Status code is 200'] = responseCode.code === 200;  
+推荐用全等 ===，确保类型和值都一致
+tests['Response time is less than 200ms'] = responseTime < 200;
+tests['Body matches string'] = responseBody.has('xxx'); 
+tests['Content-Type is present']=postman.getResponseHeader('Content-Type') || false;
+
+
+tests["状态为200"] = responseCode.code === 200;
+let res = JSON.parse(responseBody);
+console.log(res.length);
+tests["长度为8"] = res.length === 8;
+var node_name = postman.getEnvironmentVariable("node_name");
+
+
+【变通】用总是为真的断言来显示信息
+显示所有请求参数（在自动化测试里很有用）
+tests[`[INFO] Request params: ${JSON.stringify(request.data)}`] = true;  
+PS:
+1、request是Postman提供的全局对象
+2、responseCode（对象）、responseTime（数字）、responseBody（字符串）目前是Postman收到服务器返回内容才声明的变量
+3、【注意】如果你在做自动化测试，目前在接口超时没返回时：responseCode、responseTime、responseBody都没定义，使用时会导致脚本出错，判断是否超时没返回的只能靠header
+4、request.data里的变量在超时时不解析，很容易让人误会请求参数传错了，建议此时不显示这行
+5、关于’use strict’;因为Postman提供了不少全局变量，写了’use strict’;会在用到这些变量的地方出警告提示，如果平时有养成好习惯，不用容易出错的写法，不写它也没关系
+
+
+5、提取接口返回值
+返回JSON时：let json = JSON.parse(responseBody);  // responseBody是包含整个返回内容的字符串
+提取某字段的值：let foobar = json.foo.bar[0].foobar;  // 假设结构为 {"foo": {"bar": [{"foobar": 1}, {"baz": 2}]}}
+
+
+6、设置环境变量
+Postman的环境变量分为 environment 和 global 2种，实际上就是environment、globals这2个全局的对象（字典）里的内容。它们的key作为变量名，value作为变量的值。
+
+environment满足99%的需要，平时只用它就够了，global留到后文讲
+
+    作用域为整个集合
+    能创建多个environment文件，方便切换不同测试环境
+
+在地址栏、header、请求参数、外部数据文件里，用 {{变量名}} 获取环境变量的值
+如：{{URL}}/path/to/api（更常见的${}在JS的ES6语法里被占用了，Postman只能选这么个奇怪写法）
+在Pre-request Script和Tests的代码里略有不同：官方提供的方法
+
+    设置 postman.setEnvironmentVariable(‘variableKey’,value);
+	//注意：通过菜单或以上方法设置的环境变量，值会转成字符串，取的时候要转换
+	获取let foo = postman.getEnvironmentVariable(‘variableKey’);
+	字符串数字转数字：Number(foo)
+字符串’true’ 'false’转布尔值：Boolean(foo) 或 !!foo
+更新就是再设置一次同名的环境变量，换别的值
+清除环境变量postman.clearEnvironmentVariable(‘variableKey’);//懒人版
+既然知道实际上是操作 environment 对象，如果你有JS基础，可以直接：添加keyenvironment.variableKey = 12345; 少打字，取出时也不用转换类型
+获取let foo = environment.variableKey;
+清除delete environment.variableKey;
+obj.foo = undefined; 的写法无效，Postman把undefined转成了字符串……
+如果你非要跟自己过不去，用了变量名不允许的字符做key（比如有空格），只能写成 environment[‘variableKey’]
+只要没跟自己过不去，可以用ES6的对象解构语法一次取多个：let {key1, key2, key3} = environment;
+注意】在Postman主界面运行过后，通过代码设置的环境变量会存到IndexedDB，跟在菜单里设置一样，用例跑完不消失，但在collection runner或Newman跑则是默认不保存，跑完就消失，做自动化测试时要注意
+
+
+7、动态请求参数
+Postman有以下内建变量，适合一次性使用：
+{{$guid}}  // 生成GUID
+{{$timestamp}}  // 当前时间戳
+{{$randomInt}}  // 0-1000的随机整数
+
+参数依赖上一个请求的返回：上个请求的Tests里提取参数存环境变量，这个请求里用{{变量名}}取值
+参数每次都不同，但之后的断言或别的请求里可能还要用：在Pre-request Script里写代码处理，存为环境变量，参数里用{{变量名}}取值
+例如：
+const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;  // 随机整数
+const getRandomValue = list => list[randomInt(0, list.length - 1)];  // 随机选项
+environment.randomMobile = `18${randomInt(100000000, 999999999)}`;// 随机手机
+environment.randomDevice = getRandomValue(['ios', 'android']);// 随机设备名
+
+
+8、调试
+cmd + alt + c（Windows ctrl + alt + c）打开Postman控制台，可以看请求和响应内容。
+用console.log()打印，到控制台看
+
+如果确实要在代码里设global，官方的：
+ postman.setGlobalVariable('variableKey', value);  
+同样存成字符串：
+let bar = postman.getGlobalVariable('variableKey');
+postman.clearGlobalVariable('variableKey');//清除该变量
+
+
+
+var test1 = pm.request.body.urlencoded.get("key1");
+var test1 = pm.request.body.urlencoded.get("key2");
+var md5str= CryptoJS.MD5(test1 + test2).toString();
+pm.globals.set("md5",md5str);
+
+
+
+断言：
+
+//以文本格式返回body响应b内容
+console.log(pm.response.text());
+
+//以json格式返回body响应b内容
+console.log(pm.response.json());
+
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+let json = JSON.parse(responseBody); 
+let lan = json.lan;
+
+tests["lan is en"] = lan === "en";
+
+//3.验证某个返回值是否是100
+pm.test("Your test name", function () {
+    var jsonData = pm.response.json();
+    pm.expect(jsonData.lan).to.eql("en");
+});

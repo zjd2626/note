@@ -42,6 +42,48 @@ trusted-host = pypi.douban.com
 
 现在可以顺畅使用pip了
     
+	
+判断版本号：sys.version_info > (3,7,7)
+
+
+pipenv环境：
+pip install pipenv
+  
+
+# 进入项目所在目录
+pipenv install  
+或者pipenv --python 3.7
+
+#激活虚拟环境
+pipenv shell
+
+pipenv graph查看目前安装的库及其依赖
+
+pipenv --rm: 删除虚拟环境
+
+
+pipenv uninstall
+
+
+pipenv --venv: 查看当前venv的路径
+C:\Users\Administrator\.virtualenvs\flask-kaOq0RCK
+
+修改pipfile：
+[[source]]
+name = "douban"
+url = "http://pypi.douban.com/simple"
+verify_ssl = false
+
+[dev-packages]
+
+[packages]
+httprunner = "==3.0.1"
+pysocks = "==1.7.1"
+
+[requires]
+python_version = "3.7"
+
+
 2、多行注释可以用'''，或"""来实现。
 
 3、 Python 的print 语句，与字符串格式运算符( % )结合使用，可实现字符串替换功能
@@ -52,9 +94,36 @@ print "this script is copy %s to %s" %(from_file,to_file)#注意多个参数要�
      print一条语句之后默认是换行的， 如果在print语句后加多一个,那么print 就不会输出新行
      比如：print "How much do you weigh?",
      
+python3不换行：print("...",end='')
 
-4、//取整除法
-      **幂运算
+
+Python允许同时为多个变量赋值: 
+a=b=c=1
+a, b, c = 1, 2, "runoob"
+
+
+Python3 中有六个标准的数据类型：
+    Number（数字）: int、float、bool、complex（复数）。bool用False和True表示，但他们的值还是0和1.
+    String（字符串）
+    Tuple（元组）
+    List（列表）
+    Set（集合）
+    Dictionary（字典）
+
+Python3 的六个标准数据类型中：
+    不可变数据（3 个）：Number（数字）、String（字符串）、Tuple（元组）；
+    可变数据（3 个）：List（列表）、Dictionary（字典）、Set（集合）。 
+	
+字典的键，是不可变的，所以只能是数字、字符串、元祖。
+两个字典，不能进行比较
+	
+is 判断两个对象是否为同一对象
+== 判断两个对象的内容是否相同
+	
+
+4、//: 取整除法(地板除)
+   **: 幂运算
+
   Python变量名是大小写敏感的， 也就是说变量 "cAsE" 与 "CaSe" 是两个不同的变量
       
 5、#coding=utf-8
@@ -83,16 +152,68 @@ print_two_again("fuck","you")
 
 8、str="www.126.com"
 for i in str.split('.'):
-    print i
+    print(i)
     
-9、True   False 
+9、布尔值True False 
+   空值用None表示
+
+
+字符串：
+str.startswith(prefix)	#判断字符串是否以prefix开头
+str.endswith(subfix)    #判断字符串是否以subfix结尾
+
+str.find(sub)  #判断子串是否存在，存在返回开始的索引值，不存在返回-1
+str.rfind(sub)  #从右边开始查找，判断子串是否存在，存在返回开始的索引值，不存在返回-1
+str.index(sub) #断子串是否存在，存在返回开始的索引值，不存在则报错
+str.replace(old,new,count)  #替换不超过count次，返回一个新的字符串，原字符串不变
+
+
+str.isspace()  #判断是否全为空白字符
+str.isalpha()  #判断是否全为字母     str="abc中",True
+str.isalnum()  #判断是否全为字母和数字  
+
+#以下三个方法，都不能判断小数，即小数返回false
+str.isdecimal()  #全角数字
+str.isdigit()    #全角数字、unicode数字（比如\u00b2）
+str.isnumeric()  #全角数字、unicode数字、汉字数字
+
+
+文本对齐：
+str.ljust(width,fillchar)      #返回一个字符串左对齐，使用fillchar(默认空白字符)字符填充至width宽度
+str.rjust(width,fillchar)      #返回一个字符串右对齐，使用fillchar(默认空白字符)字符填充至width宽度
+str.center(width,fillchar)     #返回一个字符串居中对齐，使用fillchar(默认空白字符)字符填充至width宽度
+
+去除空白字符：
+str.lstrip()     #去除左边的空白字符
+str.rstrip()     #去除右边的空白字符
+str.strip()      #去除两边的空白字符
+
+拆分和连接：
+str.split()          #默认以"\r"、"\t"、"\n"和空格
+str.splitlines()     #按照"\r"、"\n"、"\r\n"分割，返回每一行
+str.join(iterable)   #用str作为分隔符，将可迭代对象合并为一个字符串
+
+字符串比较符合以下规则：
+0<'A'<'a'
+
 
 10、列表
 change = [1, 'pennies', 2, 'dimes', 3, 'quarters']
-change.append(4)
+
+len(change) #获取列表元素个数
+
+change[-1]  #获取最后一个元素 change[-n]获取倒数第几个元素
+
+
+change.append(4) #在列表最后增加元素
 change.append('test')
-change.append('test1')
-del change[8]#删除元素
+change.insert(1,'zjh') #在索引1增加一个元素
+
+
+del change[1] #删除索引1中的元素
+change.pop()  #删除最后一个元素
+change.pop(2) #删除索引2中的元素
+
 for i in change:
   print "change is %s" %i 
     
@@ -127,34 +248,226 @@ print mylist2   #[1, 2, 0, 'abc', 4, 'haha', 'hello ', 'world.']
 print sorted(mylist2),mylist2   #mylist2不改变
 print mylist2.sort(),mylist2    #mylist2排序并永久改变为排序后的值
 
+>>> spam = ['a', 'z', 'A', 'Z']
+>>> spam.sort(key=str.lower)
+>>> spam
+['a', 'A', 'z', 'Z']
+
+集合：
+s1=set([1,2,3,4])
+s2=set([3,4,5,6])
+s1.discard(4)   #如果在 set “s”中存在元素 x, 则删除
+
+差集：
+x-y或者x.difference(y)
+
+对称差集：
+x^y或者y^x或者x.symmetric_difference(y)
+>>> x.symmetric_difference(y)
+set([1, 2, 5, 6])
 
 
-11、元组#元组不可修改
+11、元组(元组不可修改)
 change = (1, 'pennies', 2, 'dimes', 3, 'quarters')
 for i in change:
   print i
   
-12、
+12、定义函数：
+def my_abs(x):
+	if not isinstance(x,(int,float)):
+		raise TypeError("bad operator type.")
+	if x>0:
+		return x
+	else:
+		return -x
+
+如果想定义一个空函数，可以用pass语句：
+def nop():
+	pass
+
+pass也可用在其他语句里，如：
+if x<18:
+	pass
+else:
+	print("you are a adult")
+
+
+
+def reg(name,gender,age=6,city='gz'):#必选参数在前，默认参数在后
+	print("name is %s" %name)
+	print("gender is %s" %gender)
+	print("age is %d" %age)
+	print("city is %s" %city)
+	return
+
+当调用时不按顺序提供默认参数，则需要把参数名写上：
+reg('zjd','Male',city='beijing')
+
+
+
+定义可变参数函数,*args是可变参数，args接收的是一个元组
+def calc(*args):
+	sum=0
+	for n in args:
+		sum=sum+n*n
+	return sum
+
+L=[]
+n=1
+while n<=99:
+	L.append(n)
+	n=n+2
+
+print(L)
+print(calc(*L))
+print(calc(1,2,3,4))
+
+
+
+定义关键字参数，**kw是一个关键字参数，kw接收的是一个字典
+def reg(name,age,**kw):
+	print("name:",name,"age:",age,"other:",kw)
+
+reg('mike',30)
+reg('tony',32,city='beijing',job='engineer')#关键字参数允许传入任意个含参数名的参数，这些关键字参数在函数内部自动组装为一个dict
+
+extra={'city':'beijing','job':'engineer'}
+reg('tony',32,**extra)
+
+
+如果要限制关键字参数的名称，就可以用命名关键字参数：
+def demo(x,y,*,kw1,kw2,**kwargs):  #位置参数*后面的kw1，kw2参数被视为命名关键字参数
+    print(x)
+    print(y)
+    print(kw1)
+    print(kw2)
+    print(kwargs)
+
+demo(1,2,kw1="name",kw2=18, height=1.75)
+
+
+
+reg2('mike',24,city='guangzhou',job='engineer')
+
+
+
+递归函数：
+
+递归实现求阶乘
+def fact(n):
+	if n==1:
+		return 1
+	return n*fact(n-1)
+
+print(fact(5))
+
+
+递归求不死神兔问题（斐波那契数列):
+def fib(n):
+    if n==1 or n==2:
+        return 1
+    else:
+        return fib(n-1)+fib(n-2)
+		
+生成器求不死神兔问题：
+def fib(n):
+    a,b,counter = 1,1,1
+    while counter<=n:
+        yield a
+        a, b = b, a + b
+        counter +=1
+
+print([x for x in fib(12)])
+
+
+尾递归：
+def fact(n):
+	return fact_iter(n,1)
+
+def fact_iter(num,result):
+	if num==1:
+		return result
+	return fact_iter(num-1,num*result)
+
+	
+	
+类
 class Thing(object):
-  def test(arg1,arg2):
-    print "arg1 is %s,arg2 is %s" %(arg1,arg2)
+  def test(arg1,arg2):  #arg1是self
+    print("arg1 is %s,arg2 is %s" %(arg1,arg2))
 a=Thing()
 a.test("hi")
 
 E:\python>python test.py
 arg1 is <__main__.Thing object at 0x020C39F0>,arg2 is hi
 
+
+内置函数：
+len()
+min()
+max()
+del()
+dir()
+
 13、字典
 >>>stuff = {'name': 'Zed', 'age': 36, 'height': 6*12+2}
 >>>stuff[1]='wow'
 >>> print stuff
 {1: 'Wow', 'age': 36, 'name': 'Zed', 'height': 74}
->>>del stuff[1]#删除元素
+
+del stuff['age']#删除元素
+或者stuff.pop('age')
+
+stuff.popitem()   #随机删除元素
+stuff.clear()     #清空字典
 
 >>>cities = {'CA': 'San Francisco', 'MI': 'Detroit', 'FL': 'Jacksonville'}
->>> cities.keys()
-['FL', 'CA', 'MI']
 
+cities.items():
+dict_items([('CA', 'San Francisco'), ('MI', 'Detroit'), ('FL', 'Jacksonville')])
+
+cities.keys():
+dict_keys(['CA', 'MI', 'FL'])
+
+cities.values():
+dict_values(['San Francisco', 'Detroit', 'Jacksonville'])
+
+要避免key不存在的错误,
+有两种办法,
+一是通过 in 判断 key 是否存在:
+>>> 'beiing' in cities
+False
+二是通过 dict 提供的 get 方法,如果 key 不存在,可以返回 None,或者
+自己指定的 value:
+>>> d.get('Thomas')
+>>> d.get('Thomas', -1)
+-1
+
+
+更新字典，会覆盖原有的键值对：
+stu = { "name":"xiaoming",
+		"age":18
+		}
+temp_dict = { "height": 1.75,
+			  "age":20
+			  }
+stu.update(temp_dict)
+
+
+字典.setdefault(key,value) 
+1、如果key存在，不会修改数据
+2、如果key不存在，则新增key=value键值对
+
+
+字典的坑：
+dica=dict.fromkeys([6,7,8],[1,{"name":"alex"},444])
+print(dica)
+
+dica[7][1]['name']='chen'
+print(dica)  #全都为chen
+
+
+		
 14、永远永远都使用 class Name(object) 的方式定义 class，否则你会碰到大麻烦
 
 15、下面是一个将输出重定向到日志文件的例子：
@@ -231,11 +544,1201 @@ print load_game_data
 21:三元表达式
 a=y if x else z  #如果x为真，则a=y，否则a=z
 
+22、ord函数获取字符的整数表示
+    chr函数把整数表示转换为字符
+例如：ord("中") 20013,chr(20013) 中
+
+chr()函数
+
+bin()：转换为2进制
+oct(): 转换为8进制
+hex(): 转换为16进制
+int(): 转换为10进制
+int()  如果进制数不是10，eg，16进制：int(x,16) ,此时需要加“”，比如int(10,16)是错误语法，int("10",16) 这样写才是对的
+
+
+
+23、切片
+t=list(range(100))
+打印前10个：t[:10]
+打印最后10个：t[-10:]
+打印前11-20：t[10:20]
+所有数，每5个取一个：t[::5]
+
 在Python中可以用bool函数把对象转换为0或1，然后从列表中挑选值
 例如：
 x=0
 A=['bob','john'][bool(x)]
 则，A='bob'
 
+
+24、迭代
+python3中range()函数返回的是一个可迭代对象，不是列表。相当于python2中的xrange()函数
+temp=[x*x for x in range(1,9) if x%2==0]
+print(temp)
+temp=[4, 16, 36, 64]
+
+a=list(range(1,10))
+b=[str(x)+'*' + str(y) + '='+ str(x*y) for x in a for y in a if y<=x]
+print(b)
+
+
+L1=['Hello','World',18,'Apple',None]
+L2=[s.lower() for s in L1 if isinstance(s,str)]
+print(L2)
+
+
+列表要同时迭代索引和元素：
+t=list(range(100))
+for i,value in enumerate(t):
+	print(i,value)
+
+默认情况下，dict迭代的是key，如果要迭代value，可以用：
+for value in d.values():
+
+如果要同时迭代key和value，可以用：
+for key，value in d.items:
+
+字符串也可用于迭代：
+for ch in 'abcdefg':
+	print(ch)
+	
+
+生成器：
+g=(x for x in range(100))
+
+在函数里面使用yield返回
+
+	
+	
+=======================================================
+x='中'.encode("utf-8")
+
+print(x)
+
+for i in x:
+    print(bin(i),end=' ')
+print()
+=======================================================
+	
 求100内的质数
 print [ p for p in  range(2, 101) if 0 not in [ p% d for d in range(2, int(math.sqrt(p))+1)] ]
+
+
+25:计算1000内的斐波那契数列：
+a,b=0,1
+while a<1000:
+    print(a,end=',')
+    a,b=b,a+b
+	
+a,b=b,a
+
+
+
+
+计算密集型：使用进程
+IO密集型：使用线程、协程
+
+浅拷贝和深拷贝的区别：
+	copy和deepcopy对于不可变对象，比如Str，Int，Tuple，产生的结果都是一样的，都是增加了一个引用，id也是相同的；但对于不可变对象，是重新创建了个对象，并添加了一个引用，如上面的alist和a，在alist append操作后，你会发现，a中的值还是原先的值，他们的id是不同的，此处是copy和deepcopy的真正区别，可变对象中嵌套有可变对象，浅拷贝只会复制第一层的元素，对于嵌套的可变对象，仍旧存的是原先的地址，如上图输出，但deepcopy会把嵌套的对象完全拷贝，并开辟一片空间，成为一个新的对象。
+
+	
+
+list[:]属于浅拷贝
+
+
+a=('a','b','c')
+b=copy.copy(a)
+c=copy.deepcopy(a)
+
+print(id(a))
+print(id(b))
+print(id(c))
+上面三个id是相同的
+
+
+
+
+import os
+
+os.environ['http_proxy'] = 'socks5://127.0.0.1:1080'
+os.environ['https_proxy'] = 'socks5://127.0.0.1:1080'
+
+
+pip3 install pysocks
+
+session=requests.Session()
+session.proxies = {'http': 'socks5://127.0.0.1:1080',
+                   'https': 'socks5://127.0.0.1:1080'}
+	
+
+	
+https://pan.baidu.com/s/18gY3J5t2xZPU6zSDWP09RA 密码：j8wk
+
+
+26、输出所有满足x+y=8的所有元素
+li = [1,2,3,5,6,7]
+
+temp = [(x,y) for x in li for y in li if x+y==8][::]
+result = temp[:(len(temp)+1)//2]
+print(result)
+
+
+
+27、python函数参数：必选参数、默认参数（缺省参数）、可变参数、关键字参数
+设置默认参数时注意事项：必选参数在前，默认参数在后（如果默认参数在前，那么传参时就不知道是作为默认参数还是必选参数）
+
+python可变容器类型做函数参数的坑：默认参数必须指向不变对象！！！
+def add_end(L=[]):
+	L.append('END')
+	print(L)
+test（）
+test（）
+上面这个函数是有问题的，输出结果：
+['end']
+['end', 'end']
+
+原因：函数在定义时，默认参数L所指定的地址已经确定，而L是一个list，所以每次调用该函数时，如果改变了L的内容，则下次调用时，默认参数的内容就会改变
+
+可以改成这样写：
+def add_end(L=None):
+	if not L:
+		L=[]
+	L.append('END')
+	print(L)
+test（）
+test（）
+
+===========================================================================
+python可变容器类型做函数参数的坑：
+def extendList(val, list=[]):     # []默认参数的只指向一个地址
+    list.append(val)
+    return list
+
+
+list1 = extendList(10)
+list2 = extendList(123, [])
+list3 = extendList('a')
+
+print('list1=%s' % list1)
+print('list2=%s' % list2)
+print('list3=%s' % list3)
+===========================================================================
+
+可变参数：就是传入的参数个数是可变的，可以是1个、2个到任意个，还可以是0个。在参数前面加上*就是可变参数。在函数内部，参数numbers接收得到的是一个tuple，调用该函数时，可以传入任意个参数，包括0个参数：
+def calc(*numbers):
+	sum=0
+	for n in numbers:
+		sum= sum+n*n
+	return sum
+	
+如何调用一个list或者tuple，可以在list或tuple前面加上一个*号，把list或tuple变成可变参数传进去
+
+关键字参数:允许你传入0个或任意个含参数名的参数，这些关键字参数在函数内部自动组装成一个dict。使用**表示关键字参数
+
+
+
+装饰器：
+def outer(func):
+    print("*"*50)
+    def inner(name):
+        func(name)
+    return inner
+
+@outer
+def say(name):  #say=inner()
+    print("my name is %s." %name)
+	
+被装饰的函数的名字会传递给装饰函数，然后装饰函数执行它自己内部的代码后，会将它的返回值赋值给被装饰的函数。
+
+
+闭包： 
+
+　　在一个外函数中定义了一个内函数，内函数里运用了外函数的临时变量，并且外函数的返回值是内函数的引用。这样就构成了一个闭包。
+
+
+28、交换a和b的值
+a,b=2,3
+方法一：
+a=a^b
+b=a^b
+a=a^b		
+
+方法二：
+a,b=b,a	
+
+
+29、在一个函数的内部，不允许直接修改全局变量；如果在函数内部重新赋值和全局变量同名的变量，那么只会定义一个新的局部变量；如果需要在一个函数内修改全局变量，需使用global语句。
+
+num=1
+def demo()
+	num+=1  #错误的写法，函数内部不允许修改全局变量
+	
+
+在函数内部针对参数赋值不会影响外部实参
+在函数内部使用方法修改可变参数会影响外部实参
+列表+运算会重新生成一个对象，而列表使用+=本质上是调用extend方法,原地修改对象
+
+gl_list=[1,2,3]
+
+def demo(num_list):
+    num_list=num_list+num_list
+    print(num_list)
+
+demo(gl_list)
+print(gl_list)
+
+
+判断对象是否是None，应该用is，而不是==
+
+
+30、类
+
+dir(对象名)：可以查看函数内置的属性和方法
+
+新式类：以object为基类的类，推荐使用（python3中，如果没有指定父类，默认使用object作为基类。所以python3中定义的类都为新式类）
+经典类：不以object为基类的类
+
+
+类名的命名规则遵循大驼峰.
+
+
+
+
+_x:  from module import * 禁止导入，类对象和子类可以访问
+
+在类的属性和方法名前增加两个下划线（注意最后面不要有__），这个属性和方法就变为私有属性和私有方法。
+
+
+_age = 18
+
+class Person(object):
+	def __init__(self, name):
+		self._name = name
+		self.__age = _age
+
+	def show(self):
+		print(self._name)
+		print(self.__age)
+
+
+class Women(Person):
+	def __init__(self, name):
+		super().__init__(name)
+		# pass
+
+	def show(self):
+		print(self._name)
+
+		
+xiaofang=Women("小芳")
+print(xiaofang._Women__age) #python中的私有属性和私有方法是伪的私有属性和私有方法，可以通过特殊方式访问：对象名._类名私有属性
+如
+
+
+面向对象的三大特性：封装、继承、多态
+ 
+封装：隐藏对象的属性和实现细节，只对外提供必要的公共方法对其访问
+继承：继承可以让子类具有父类的特性，提高了代码的复用性，同样的代码不用重复的编写
+多态：同一个方法调用，由于传的对象不同可能会产生不同的行为。多态可以增加代码的灵活度，它是以继承和重写父类方法为前提。
+
+
+
+重写父类方法：
+1、覆盖父类方法
+2、对父类方法进行扩展：super().父类方法。注意：python 2.x中，使用父类名.父类方法(self)来调用
+
+
+子类对象在自己的方法内部，不能直接访问父类的私有方法和属性
+
+
+多继承：
+	class 子类名(父类名1，父类名2):
+		pass
+		
+__mro__：方法搜索顺序
+
+
+
+多态案例：
+class Dog(object):
+    def __init__(self, name):
+        self.name = name
+
+    def game(self):
+        print("%s蹦蹦跳跳的玩耍..." %self.name)
+
+
+class XiaoTianQuan(Dog):
+    def game(self):
+        print("%s飞到天上去玩耍..." %self.name)
+
+
+class Person(object):
+    def __init__(self, name):
+        self.name = name
+
+    def game_with_dog(self, dog):
+        print("%s和%s在一起玩耍..." %(self.name, dog.name))
+        dog.game()
+
+
+if __name__ == '__main__':
+    wangcai = Dog("旺财")
+    xtq = XiaoTianQuan("哮天犬")
+    xiaoming = Person("小明")
+    xiaoming.game_with_dog(wangcai)
+    print("==================================")
+    xiaoming.game_with_dog(xtq)
+	
+	
+多个对象的方法，在内存中只有一份，保存在类所在的内存空间。
+
+
+类属性和类方法：
+1、在类的下方使用赋值语句定义一个类属性，使用类名.属性访问类属性
+2、@classmethod定义一个类方法，方法的第一个参数必须是cls。在类方法内部，可以使用cls访问类属性和类方法
+
+__init__方法定义实例属性
+
+class Tools(object):
+    count=0   #类属性
+
+    @classmethod  #定义一个类方法
+    def show_count(cls):
+        print("我是类方法.")
+        print(cls.count)
+
+    def __init__(self,name):
+        self.name=name
+        self.count=88
+        Tools.count+=1
+
+    def test(self):
+        Tools.show_count()
+		
+		
+静态方法：如果一个方法，既不需要访问类属性和类方法，也不需要访问实例属性和实例方法，那么可以定义为一个静态方法。
+class Dog(object):
+	@staticmethod
+	def run():
+		print("小狗在跑...")
+		
+		
+如果一个方法，既要访问类属性，又要访问实例属性，应该定义为一个实例方法。在实例方法内部使用类名.来访问类属性。
+
+
+
+===================================================================
+魔法方法：双下划线
+__new___(cls[,...]):new至少要有一个参数cls，代表要实例化的类，其他参数原封不动的传递给__init__方法。需要返回一个对象。
+
+__init__(self): 不能有返回值
+
+
+使用类名()创建对象时，首先会调用__new__方法为对象分配空间，__new__是由object基类提供的内置的静态方法。主要作用有2个：
+1、在内存中为对象分配空间
+2、返回对象的引用
+
+
+
+class CapStr(str):
+    def __new__(cls, string):
+        string=string.upper()
+        return str.__new__(cls,string)
+
+teststr=CapStr("hello,world.")
+print(teststr)
+
+
+
+单例设计模式：
+	目的：让类创建的对象，在系统中只有唯一的一个实例，每一次执行类名()返回的对象，内存地址是相同的。
+	重写__new__方法：
+		1、一定要return super().__new__(cls),返回分配的对象空间地址。
+		2、至少要有一个参数cls，代表要实例化的类
+		
+class MusicPlayer(object):
+    instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls.instance is None:
+            cls.instance = super().__new__(cls)
+        return cls.instance
+
+    def __init__(self):
+        print("音乐播放器初始化方法...")
+
+
+if __name__ == '__main__':
+    p1 = MusicPlayer()
+    print(p1)
+
+    p2 = MusicPlayer()
+    print(p2)
+
+===================================================================	
+		
+	
+
+捕获异常：
+
+try：
+	#不确定是否能够正常执行的代码
+except 错误类型1：
+	错误处理1
+except (IOError,OSError)：
+	错误处理2
+except Exception as e：
+	错误处理3
+else:
+	没有错误才执行的代码
+finally:
+	总是会执行的代码
+
+	
+try:
+    num = int(input("请输入一个整数："))
+    result = 8/num
+except ZeroDivisionError:
+    print("除数不能为0...")
+except ValueError:
+    print("except")
+else:
+    print("计算结果是: %s" %result)
+finally:
+    print("finally","*"*50)
+===================================================================		
+需求：提示用户输入密码，如果长度不足8位，抛出异常
+raise抛出异常：
+
+def input_passwd():
+    pwd = input("请输入长度大等于8位数的密码：")
+    if len(pwd)>=8:
+        return pwd
+    else:
+        print("主动抛出异常.")
+        # ex = Exception("密码长度不足8位.")
+        ex = ValueError("密码长度不足8位.")
+        raise ex
+
+try:
+    pwd = input_passwd()
+except ValueError:
+    print("密码长度不足8位.")
+except Exception as e:
+    print(e)
+
+
+用户自定义异常：
+
+你可以通过创建一个新的异常类来拥有自己的异常。异常类继承自 Exception 类，可以直接继承，或者间接继承，例如:
+
+>>>class MyError(Exception):
+        def __init__(self, value):
+            self.value = value
+        def __str__(self):
+            return repr(self.value)
+   
+>>> try:
+        raise MyError(2*2)
+    except MyError as e:
+        print('My exception occurred, value:', e.value)
+
+		
+		
+
+模块名也是一个标识符，以数字开头的文件名是无法在pycharm中导入的
+
+pyc文件是由python解释器将模块的源码转换为字节码
+
+
+完整的for循环：
+for ..：
+	循环语句
+else：
+	正常结束循环(没有通过break结束循环)时要执行的语句
+	
+类似的还有while
+
+while True：
+	循环语句
+else:
+	正常结束循环(没有通过break结束循环)时要执行的语句
+
+	
+31、在函数内部，针对参数使用了赋值语句，无论参数是不可变还是可变参数，都不会影响到实参。
+但如果参数是可变类型，在函数内部使用了方法修改了参数的内容，也会影响到实参。
+
+面试题：
+gl_list = [1,2,3,4]
+
+def demo(num_list):
+    num_list+=num_list
+
+demo(gl_list)
+print(gl_list)
+
+注意：num_list+=实际上是调用list的extend方法，这样就会修改引用的内容。
+
+
+32、简易web服务器：
+python2：python -m SimpleHTTPServer 80
+python3：python -m http.server 80
+
+
+33、汉诺塔
+times=1
+
+def move2(n, a, b, c):
+   '''
+   利用递归函数移动汉诺塔
+   :param n: 一共有多少个圆盘
+   :param a: 初始柱子
+   :param b: 中间柱子
+   :param c: 目标柱子
+   :return: 
+   '''
+   global times
+   if n == 1:
+      print('move', a, '-->', c)
+   else:
+      move2(n-1, a, c, b)  #把a上的n-1个盘子移动到b，借助c
+      times+=1
+      print('move', a, '-->', c)
+      move2(n-1, b, a, c)  #把b上的n-1个盘子移动到c，借助a
+      times+=1
+
+move2(3, 'A', 'B', 'C')
+print(times)
+
+
+
+34、要求按单词把字符串翻转
+hello=" Hello, how are you?   Fine.    "
+
+
+def rever(list_str,start,end):
+    while start<end:
+        list_str[start],list_str[end]=list_str[end],list_str[start]
+        start+=1
+        end-=1
+
+
+str_list=list(hello)
+i=0
+while i <len(str_list):
+    if (str_list[i]):
+        start=i
+        end=start+1
+        while (end<len(str_list)) and str_list[end] !=' ':
+            end+=1
+        rever(str_list,start,end-1)
+        i=end
+    else:
+        i+=1
+
+print(''.join(str_list))
+str_list.reverse()
+print(''.join(str_list))
+
+更简单的方法，利用正则：
+import re
+hello=" Hello, how are you?   Fine.    "
+print(''.join(reversed(re.split(r'(\s+)',hello))))
+
+
+
+35、
+
+li1=[1,2,3,['Alex','jack'],4,5]
+
+li2=li1.copy()
+li3=li1[:]
+
+li1[3][0]="Alexender"
+
+print(li1)
+print(li2)
+print(li3)
+
+
+
+
+import copy
+
+person=['name',['a',100]]
+
+p1=copy.copy(person)
+p2=person[:]
+p3=list(person)
+
+
+person[1][0]='b'
+
+'''以下均为浅copy
+print(p1)
+print(p2)
+print(p3)
+'''
+
+
+li=[[0]*3] * 3
+li[0][0]=100
+li[2][0]=200
+
+li2=[[0]*3 for i in range(3)]
+li2[0][0]=100
+li2[2][0]=200
+
+print(li)  #[[200, 0, 0], [200, 0, 0], [200, 0, 0]]
+print(li2) #[[100, 0, 0], [0, 0, 0], [200, 0, 0]]
+
+
+
+36、打印进度条
+import sys
+import time
+
+print("loading...please wait.")
+for i in range(50):
+    sys.stdout.write("=")
+    sys.stdout.flush()
+    time.sleep(0.2)
+	
+
+37、打印数字999999999888888888777777777666666666555555555444444444333333333222222222111111111
+print(''.join([i*9 for i in '987654321']))
+
+打印数字999999999888888887777777666666555554444333221
+print(''.join([i*int(i) for i in '987654321']))
+
+
+
+38、输出字符串中出现频率最多的英文字母（小写形式），如果有2个或已上具有相同频率的字母，返回字母表中先出现的那个。
+import string
+def get_max_value(text):
+     text = text.lower()
+     return max(string.ascii_lowercase,key=text.count)
+
+print(get_max_value("How do you do?"))
+
+
+39、给定一个列表，求中位数。（中位数是一个可将数值集合划分为相等的上下两部分的一个数值）
+
+def get_median(data):
+     data.sort()
+     half = len(data) // 2
+     return (data[half] + data[~half]) / 2
+
+print(get_median([3, 6, 20, 99, 10, 15]))
+print(get_median([1, 300, 2, 200, 1]))
+print(get_median([3, 1, 2, 5, 3]))
+print(get_median([1,2,3,4,5,6]))
+
+39、os模块
+os.rename(原文件名，目标文件名）
+os.remove（文件名)
+os.listdir(dir)
+os.mkdir(dir)
+os.rmdir(dir)
+os.getcwd()  #获取当前目录
+os.chdir(target)  #修改工作目录
+
+os.path.isdir(target)  #判断是否是目录
+os.path.abspath(target) #获取绝对路径
+
+filepath=__file__
+
+40、
+对可迭代对象 f，进行迭代遍历：for line in f，会自动地使用缓冲IO（buffered IO）以及内存管理，而不必担心任何大文件的问题。
+
+with open(filename, 'rb') as f:
+	for line in f:
+		<do something with the line>
+
+
+=================================================		
+def read_trunk(filepath,chunk_size):
+    with open(filepath,"r",encoding="utf-8") as f:
+        while True:
+            content = f.read(chunk_size)
+            if not content:
+                break
+            yield content
+file_name = r'E:/学习视频/编程/Python/老王python培训视频/基础/基础篇21-文本操作应用/twitter数据挖掘片段.txt'
+for i in read_trunk(file_name, 1024*1024):
+	print(i)
+			
+41、str、bytes
+
+str.encode：str转换为bytes
+bytes.decode: bytes转换为str
+
+
+x='中'.encode("utf-8")
+
+print(x)
+
+for i in x:
+    print(bin(i),end=' ')
+print()
+
+
+42、eval函数：将字符串当成有效的表达式来求值。
+不要滥用eval函数，在开发时，千万不要使用eval直接转换输入。
+例如：eval("__import__('os').system('dir')")
+
+
+43、socket
+
+udp连接：
+udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+addr=("",80)
+udp_socket.bind(addr)
+msg="hello".encode("utf-8")  
+udp_socket.sendto(msg,("192.168.9.100",8080))
+
+recv_data=udp_socket.recvfrom(1024)  
+recv_msg=recv_data[0].decode("gbk")  #接受到的消息
+send_addr=recv_data[1]               #发送端的ip端口
+
+udp_socket.close()
+
+
+
+tcp连接：
+服务器端：
+import socket
+
+tcp_socket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+
+tcp_socket.bind(("", 7788))
+
+tcp_socket.listen(128)
+
+while True:
+
+    client_socket,client_addr=tcp_socket.accept()
+
+    print(client_socket,client_addr)
+
+    while True:
+        recevice_data=client_socket.recv(1024)
+        if recevice_data:
+            print(recevice_data.decode("gbk"))
+        else:
+            break
+    client_socket.close()
+
+tcp_socket.close()
+
+
+客户端：
+import socket
+
+
+tcp_socket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+
+local_addr=("",7788)
+
+tcp_socket.bind(local_addr)
+
+server_addr=("192.168.9.100",8080)
+
+tcp_socket.connect(server_addr)
+
+send_data=input("请输入内容：")
+
+tcp_socket.send(send_data.encode("gbk"))
+
+msg=tcp_socket.recv(1024)
+
+print(msg.decode("gbk")
+
+tcp_socket.close()
+
+
+
+44、pytest
+1、自动发现测试模块和测试方法
+2、可以设置会话级、模块级、类级、函数级的fixture，数据准备+清理工作
+3、丰富的插件库，比如打标签，重复多次运行一个用例、指定顺序、失败重跑
+
+pip install pytest pytest-randomly pytest-cov pytest-rerunfailures pytest-repeat pytest-dependency pytest-ordering pytest-html pytest-assume allure-pytest
+
+@pytest.mark.run(order=1)
+order优先级：
+	0>较小的正数>较大的正数>无标记>较小的负数>较大的负数
+
+@pytest.mark.skip(condition,reason="xxx")
+@pytest.mark.xfail(condition,reason="xxx")
+
+@pytest.mark.parametrize(['username','password'],[('15521007354',123456),('15521007355',123456)])
+def test_search(self,username, password):
+	print(username, password)
+
+固件（Fixture）是一些函数，pytest 会在执行测试函数之前（或之后）加载运行它们。最简单使用固件方式是作为测试函数参数,或者使用 usefixtures.
+如果我们想让固件自动执行，可以在定义时指定 autouse 参数。
+
+我们可以利用固件做任何事情，其中最常见的可能就是数据库的初始连接和最后关闭操作。
+
+Pytest 使用 pytest.fixture() 定义固件，下面是最简单的固件，只返回北京邮编：
+
+
+# test_postcode.py
+
+@pytest.fixture()
+def postcode():
+    return '010'
+
+
+def test_postcode(postcode):
+    assert postcode == '010'
+
+	
+	
+预处理和后处理
+
+很多时候需要在测试前进行预处理（如新建数据库连接），并在测试完成进行清理（关闭数据库连接）。
+
+当有大量重复的这类操作，最佳实践是使用固件来自动化所有预处理和后处理。
+
+Pytest 使用 yield 关键词将固件分为两部分，yield 之前的代码属于预处理，会在测试前执行；yield 之后的代码属于后处理，将在测试完成后执行。
+
+	
+固件的作用是为了抽离出重复的工作和方便复用，为了更精细化控制固件（比如只想对数据库访问测试脚本使用自动连接关闭的固件），pytest 使用作用域来进行指定固件的使用范围。
+
+在定义固件时，通过 scope 参数声明作用域（默认的作用域为function），可选项有：
+
+    function: 函数级，每个测试函数都会执行一次固件；(request.instance)
+    class: 类级别，每个测试类执行一次，所有方法都可以使用；
+    module: 模块级，每个模块执行一次，模块内函数和方法都可使用；
+    session: 会话级，一次测试只执行一次，所有被找到的函数和方法都可用。
+
+@pytest.fixture有一个params参数，接受一个列表，列表中每个数据都可以作为用例的输入。也就说有多少数据，就会形成多少用例。
+
+
+import pytest
+
+seq=["case1","case2","case3"]
+
+
+@pytest.fixture(scope="module",params=seq)
+def params(request):
+    return request.param
+
+
+
+def test_params(params):
+    print(params)
+    assert "case" in params
+	
+	
+============================================
+#1、创建：conftest.py文件里面的函数前加：@pytest.fixture
+ @pytest.fixture(scope="session",autouse=True)
+  参数scope默认函数级别，session回话级别整体运行一次，可设置自动执行
+#2、yield 隔断前置后置，后面加函数返回值。
+#3、调用：函数或类前加 @pytest.mark.usefixture("函数名")
+         fixture函数名作为参数传给用例
+目的：用于公共数据准备和清理。
+
+============================================
+	
+多重校验：pytest-assume
+    def test_a(self):
+        pytest.assume(3 == 3)
+        pytest.assume(5 == 3)
+        pytest.assume(4 == 5)
+
+即使第二个断言失败了，第三个断言还是会继续执行
+
+失败重跑：pytest-rerunfailures
+	#reruns是重跑次数，reruns_delay是间隔时间
+    @pytest.mark.flaky(reruns=6, reruns_delay=2)
+    def test_a(self):
+        pass
+
+		
+重复执行：pytest-repeat
+
+<1>对整个文件的测试用例重复执行：pytest -v  test_case.py  --count=5
+
+<2>直接标记某个用例执行多少次：@pytest.mark.repeat(2)
+
+
+用例依赖：pytest-dependency
+
+
+[pytest]
+addopts = -s --reruns=1 --html=reports.html --self-contained-html
+xfail_strict = True
+python_files =     test_*
+python_classes =   Test*   test*
+python_functions = test_*  test*
+testpaths = test
+markers=
+    aaa:mao yan
+    bbb
+    ccc
+    ddd
+
+# 标签名冒号后面可以添加注释信息必须是英文
+# 红色字段为固定模式，不能改变
+在测试用例/ 测试类前面加上标签：@pytest.mark.已注册的标记名
+
+
+
+在测试类里，使用以下申明（测试类下，所有用例都被打上该标签）
+class TestDemo:
+    # 单个标签
+    pytestmark = pytest.mark.已注册标签名
+    # 多个标签
+    pytestmark = [pytest.mark.标签1, pytest.mark.标签1]
+	
+	
+在模块文件里（py文件下，所有测试函数和测试类里面的测试函数，都有会打上该标签）	
+import pytest
+# 单个标签
+pytestmark = pytest.mark.已注册标签名
+# 多个标签
+pytestmark = [pytest.mark.标签1, pytest.mark.标签1]
+
+
+
+fixture的查找的顺序是：测试类、测试模块、conftest.py、最后是内置和第三方的插件
+
+
+
+fixture函数能够接收一个request的参数，表示测试请求的上下文；我们可以使用request.addfinalizer方法为fixture添加清理函数;
+
+@pytest.fixture()
+def smtp_connection_fin(request):
+    smtp_connection = smtplib.SMTP("smtp.163.com", 25, timeout=5)
+
+    def fin():
+        smtp_connection.close()
+
+    request.addfinalizer(fin)
+    return smtp_connection
+	
+
+
+注意：
+
+在yield之前或者addfinalizer注册之前代码发生错误退出的，都不会再执行后续的清理操作
+	
+allure generate <allure测试结果目录> -o <存放报告的目录> --clean
+
+
+45、unittest
+suite = unittest.TestSuite()
+suite.addTest(ClassName(MethodName))
+suite.addTest(unitest.makeSuite(className))
+
+runner = unittest.TextTestRunner()
+runner.run(suite)
+
+重点使用defaultTestLoader
+    testdir = "."
+    suite =unittest.defaultTestLoader.discover(testdir,"test*.py")
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
+
+
+
+for method, error in self._outcome.errors:
+	if error:
+		do sth.
+
+sys.exc_info()
+
+46、ddt
+import unittest
+import ddt
+
+@ddt.ddt
+class TestDDT(unittest.TestCase):
+
+    @ddt.data(1,2)
+    def test1(self,a):
+        print(a)
+
+    @ddt.data([1,2],[3,4])
+    @ddt.unpack
+    def test2(self,a,b):
+        print(a+b)
+
+if __name__ == '__main__':
+    unittest.main()
+	
+
+	
+47、xlrd
+
+import xlrd
+
+workbook = xlrd.open_workbook("d:/我的文档/桌面/test.xlsx")
+
+print(workbook.sheet_names())
+sheet = workbook.sheet_by_index(0)
+
+print(sheet.nrows) #行数
+print(sheet.ncols) #列数
+
+data = []
+for i in range(1,sheet.nrows):
+    data.append(sheet.row_values(i))
+print(data)
+
+
+48、bdd行为驱动
+pip3 install behave pyhamcrest
+
+
+
+49、property属性
+property属性内部进行一些复杂的计算，最终将结果返回，调用时就像使用一个属性
+
+class Pager(object):
+    def __init__(self, current_page):
+        self.current_page = current_page
+        self.per_items = 10
+
+    @property
+    def start(self):
+        val = (self.current_page - 1) * self.per_items
+        return val
+
+    @property
+    def end(self):
+        val = self.current_page * self.per_items
+        return val
+
+========================================================================		
+		
+class Goods(object):
+    def __init__(self):
+        self.origin_price = 100
+        self.discount = 0.8
+
+    @property
+    def price(self):
+        new_price = self.origin_price * self.discount
+        return new_price
+
+    @price.setter
+    def price(self, value):
+        self.origin_price = value
+
+    @price.deleter
+    def price(self):
+        del self.origin_price
+
+if __name__ == '__main__':
+    obj = Goods()
+    print(obj.price)
+    obj.price = 200
+    print(obj.price)
+	
+========================================================================
+class Money(object):
+    def __init__(self):
+        self.__money = 0
+
+    def getMoney(self):
+        return self.__money
+
+    def setMoney(self, value):
+        if isinstance(value, int):
+            self.__money = value
+        else:
+            print("error: %s不是有效的数字" %value)
+
+    money = property(getMoney, setMoney)
+
+
+if __name__ == '__main__':
+    obj = Money()
+    obj.money = 200
+    print(obj.money)
+
+	
+	
+=========================================================
+map、reduce
+
+map()是 Python 内置的高阶函数，它接收一个函数 f 和一个 list，并通过把函数 f 依次作用在 list 的每个元素上，得到一个map object.
+li = [1,2,3,4,5,6,7,8,9]
+
+map_li = map(lambda x: x*x, li)
+print(map_li)
+print(list(map_li))
+
+filter(function,sequence)主要作用是过滤掉序列中不符合函数条件的元素，当序列中要删、减元素时，可以使用filter函数得到一个filter object。function可以是匿名函数或者自定义函数，它可以对后面的sequence序列的每个元素判定是否符合条件，返回True或者False，从而留下True的元素；sequence可以是列表、元组或者字符串。
+
+fi = filter(lambda x: x%2 ==0, li)
+print(fi)
+print(list(fi))
+
+
+reduce使用前需要导包 from functools import reduce。map和filter是内置函数，所以可以直接调用.
+用传给 reduce 中的函数 function（有两个参数）先对iterable中的第 1、2 个元素进行操作，得到的结果再与第3个数据用 function 函数运算，以此类推，最后得到一个结果。
+
+li = [1,2,3,4,5,6,7,8,9]
+print(reduce(lambda x,y:(x+y),li))  
+print(sum(li))
+
+
+zip:
+a=(1,2,3,4,5)
+b=(6,7,8,9,10)
+res = list(zip(a,b))
+print(res)
+
+li1,li2 = zip(*res)  #解包
+print(li1,li2)
+
+内置函数：
+all(): 接收一个可迭代对象，对所有元素bool运算都是True，则返回True、
+		注意：all([0,1,2,3])，因为0是False，所以返回False
+any(): 接收一个可迭代对象，只要有一个元素bool运算是True，就返回True
+
+bin(): 10转2进制
+oct()：10转8进制
+hex()：10转16进制
+
+chr(): 返回某个十进制数字对应的ASCII字符
+ord(): 返回某个字符对应的十进制数
+
+
+enumerate(): 可迭代对象，同时提供系列号
+a=[1,2,3,4,5]
+
+for index,value in enumerate(a,1):
+    print(index,value)
+	
+iter(): 转换为一个迭代器
+	
+max()/min(): 可以指定排序的方法,例如：max(xx,key=len)
+round(): 四舍五入
+
+
+sorted(['bob','david','charles','alex'],key=str.lower,reverse=True)
+sorted([-12,3,48,6],key=abs,reverse=True)
+
+
+t = __import__("time")
+t.time()
+
+
+
+======================================================================
+反射是一个很重要的概念，它可以把字符串映射到实例的变量或者实例的方法然后可以去执行调用、修改等操作。它有四个重要的方法：
+
+    getattr 获取指定字符串名称的对象属性
+    setattr 为对象设置一个对象
+    hasattr 判断对象是否有对应的对象（字符串）
+    delattr 删除指定属性
+

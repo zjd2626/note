@@ -102,6 +102,9 @@ vars.put("useid${count}","${useid}");
 
 --------------------------------------------------------------
 jmeter与jenkins集成：
+https://github.com/jmeter-maven-plugin/jmeter-maven-plugin/wiki
+
+
 配置jmeter测试环境，注意修改Jmeter的bin目录下jmeter.properties文件的配置：
 jmeter.save.saveservice.output_format=xml 
 jmeter.save.saveservice.assertion_results=all
@@ -171,6 +174,8 @@ Jenkins安全默认是将以下功能都关闭了
 解决这个问题可以在jenkins系统管理，脚本命令行中输入以下脚本运行，就可以解决这个问题了
 
 System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "")
+
+CATALINA_OPTS="-Dhudson.model.DirectoryBrowserSupport.CSP=\"default-src 'self'; style-src 'self' 'unsafe-inline' www.google.com ajax.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' www.google.com; img-src 'self' data:; child-src 'self'\""
 ----------------------------------------------------------------------------------
 我还遇到过这么一个问题，就是我们有时候会用到beanshell脚本，而用到beanshell脚本的时候有可能会用到我们自己写的jar包。比如我用到一个自己写的获取时间的jar，当时把这个jar包放到了src/test/lib目录下,然后通过maven-resources-plugin插件把这个包拷贝到jmeter/lib/ext目录下。
 <!-- 把resources文件夹下面的文件拷贝到jmeter/lib/ext目录下 -->
@@ -277,3 +282,42 @@ SampleResult.setResponseData(RpData)
 
 
 ---------------------------------------------------------------------
+jmeter下载文件：
+1.信息头增加：
+Accept  application/vnd.ms-excel
+Content-Type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+2.增加BeanShell PostProcessor
+import java.io.*;
+ 
+byte[] result = prev.getResponseData();  //这个是获取到请求返回的数据，prev是获取上个请求的返回
+ 
+String filename = "D:\\test.xlsx"; //代表存放文件的位置和文件名
+ 
+File file = new File(filename);
+ 
+FileOutputStream out = new FileOutputStream(file);
+ 
+out.write(result);
+ 
+out.close();
+
+
+jdbc:mysql://127.0.0.1:5506/?useUnicode=true&allowMultiQueries=true&characterEncoding=UTF-8
+com.mysql.jdbc.Driver
+
+
+
+命令行执行：
+jmeter -n -t test.jmx -JthreadCount=200 -Jduration=120 -Jcycles=100 -l report.jtl -e -o report
+
+-JthreadCount=200为测试计划指定的线程数(并发用户数)
+
+-Jcycle=100为测试计划每个线程(并发用户)的迭代次数，如果-Jcycle=-1，表示一直运行
+
+-Jduration表示运行时间
+
+在test.jmx测试计划中用${__P(threadCount,)}来获取threadCount的值；${__P(cycle,)}来获取cycle的值。${__P(duration,)}来获取duration的值
+
+如果只有jml，转换成html：
+jmeter.bat -g report.jtl -o foldername

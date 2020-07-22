@@ -29,11 +29,30 @@ WantedBy=multi-user.target
 dbsize：用于返回当前数据库的key的数量
 keys *: 返回当前数据库中存在的键名
 exists key：检查是否存在key
+type key:返回key的类型
+expire key：设置key的过期时间（s）
+expireat key timestamp:
+pexpire key：设置key的过期时间（ms）
+pexpireat key timestamp：
+
+TTL：返回key的剩余时间（s）
+PTTL：返回key的剩余时间（ms）
+
+persist key:将带有过期时间的key转变为永不过期的key
+
+rename key newkey：重命名key
+renamenx key newkey:只有当newkey不存在时才重命名
+
+dump key：序列化key，返回序列化后的值
+restore key ttl serialized-value：反序列化key
+
+move key dbId：当目标数据库已存在同名key时移动失败
 
 3、redis数据类型
 
 string字符串类型
     set key value : 设置key值为value
+	APPEND key value:将值追加到key末尾
 	get key       ：根据key取得value
 	getrange key start end ：根据start end截取value
 	setrange key offset value：从offset开始替换字符串
@@ -50,7 +69,67 @@ string字符串类型
 	ttl key:得到key的生存周期
 	
 	psetex key milliseconds value:以毫秒为单位设置key的生存周期
+	
+	INCR key:对key中存储的数值进行加1操作。如果key存储的不是数字则报错
+	INCRBY key increment：对key中的值加上指定增量
+	INCRBYFLOAT key increment：对key中的值加上指定增量，支持浮点
+	
+	DECR key:对key中存储的数值进行减1操作。如果key存储的不是数字则报错、
+	DECRBY key decrement：对key中的值进行增量递减。
+	
+	
 hash类型
-list类型
+    hset key field value:  hset userinfo username "zjd"
+	hget key field:        hget userinfo username
+	
+	hsetnx key field value:当field不存在的时候设置field值为value
+	hmset key field1 value field2 value:设置多个field
+	hmget key field1 field2 ...
+	
+	hgetall key:返回key中所有的field和value
+	hkeys key：返回key中所有的field
+	hvals key: 返回key中所有的value
+	
+	hexists key field:检测key里面是否有field
+	hlen  key:返回key中的filed数量
+	
+	hincrby key field increment 
+	
+	hdel key field :删除key中的filed，可以一次删除多个field
+	
+	
+list类型：
+lpush key value value ...:向列表左端添加元素
+rpush key value value ...:向列表右端添加元素
+
+lpushx key value：当key存在才添加元素
+rpushx key value：当key存在才添加元素
+
+lpop key：
+rpop key:
+
+llen key:返回列表的长度
+
+lrange key start stop：获取列表区间元素
+lrem  key count value：
+删除列表中的value，其中当count=0时，删除列表中的所有value；当count>0时，从列表的头部开始删除count个value；当count<0时，从列表的尾部删除count个value。
+
+lindex key index:获得指定index的值
+
+lset key index value：设置index的值为value
+
+ltrim key start stop：只保留start-stop间的元素
+
+
+
+
 set集合类型
 zset有序集合类型
+
+
+
+慢查询：
+config get slow*
+
+slowlog get：获取慢查询队列
+slowlog len：获取慢查询队列长度

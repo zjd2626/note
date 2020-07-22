@@ -1,0 +1,519 @@
+安装php：
+yum install -y php72w-common php72w-mysqlnd php72w-gd php72w-pdo php72w-devel php72w-embedded mod_php72w php72w-mbstring php72w-xml php72w-process php72w-pecl-igbinary php72w-pecl-memcached php72w-cli php72w-fpm php72w-opcache php72w-pear
+
+yum install -y unixodbc unixODBC-devel php72w-odbc
+
+安装docker ce
+# step 1: 安装必要的一些系统工具
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2 
+# Step 2: 添加软件源信息
+sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+# Step 3: 更新并安装 Docker-CE
+sudo yum makecache fast
+sudo yum -y install docker-ce docker-compose
+# Step 4: 开启Docker服务
+sudo systemctl enable docker
+sudo systemctl start docker
+
+
+cat /etc/my.cnf:
+[mysqld]
+#
+# Remove leading # and set to the amount of RAM for the most important data
+# cache in MySQL. Start at 70% of total RAM for dedicated server, else 10%.
+# innodb_buffer_pool_size = 128M
+#
+# Remove leading # to turn on a very important data integrity option: logging
+# changes to the binary log between backups.
+# log_bin
+#
+# Remove leading # to set options mainly useful for reporting servers.
+# The server defaults are faster for transactions and fast SELECTs.
+# Adjust sizes as needed, experiment to find the optimal values.
+# join_buffer_size = 128M
+# sort_buffer_size = 2M
+# read_rnd_buffer_size = 2M
+#
+#xulis
+#join_buffer_size = 24M
+#innodb_buffer_pool_size=1024M
+#innodb_log_file_size=512M
+#sort_buffer_size = 512M
+#read_buffer_size = 32M
+#read_rnd_buffer_size = 8M
+innodb_flush_log_at_trx_commit = 0
+#xulis
+port=30036
+datadir=/opt/mysql/data
+socket=/opt/mysql/mysql.sock
+
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+
+log-error=/opt/mysql/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+
+max_connections=60000
+group_concat_max_len = 102400
+max_connect_errors = 1000
+sql_mode=NO_ENGINE_SUBSTITUTION
+
+max_allowed_packet=40M
+
+general_log = on
+general_log_file = /opt/mysql/mysql.log
+
+slow_query_log = on
+slow-query-log-file = /opt/mysql/slowquery.log
+long_query_time = 5
+log_timestamps=SYSTEM
+
+
+[client]
+port=30036
+default-character-set=utf8
+socket=/opt/mysql/mysql.sock
+
+[mysql]
+default-character-set=utf8
+socket=/opt/mysql/mysql.sock
+
+
+------------------------------------------------------------------------------------
+/usr/lib/systemd/system/redis.service
+
+[Unit]
+Description=Redis
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=forking
+PIDFile=/opt/redis/redis.pid
+ExecStart=/opt/redis/redis-server /opt/redis/redis.conf
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+
+------------------------------------------------------------------------------------
+
+===============================================================
+1.dwproxy.service
+[Unit]
+Description=Go/golang-xxx
+After=network.target
+
+[Service]
+User=root
+Group=root
+Type=simple
+ExecStart=/nmapps/go/dwproxy/bin/dwproxy \
+	-conf=/nmapps/go/dwproxy/etc/ \
+	-logpath=/nmapps/go/dwproxy/log/ \
+	-env=prod
+RestartSec=2
+Restart=on-failure
+KillMode=process
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
+
+[Install]
+WantedBy=multi-user.target
+===============================================================
+
+
+
+===============================================================
+supervisord安装：
+1.pip install supervisor
+
+2.vi /etc/supervisord.conf
+; Sample supervisor config file.
+
+[unix_http_server]
+file=/var/run/supervisor/supervisor.sock   ; (the path to the socket file)
+;chmod=0700                 ; sockef file mode (default 0700)
+;chown=nobody:nogroup       ; socket file uid:gid owner
+;username=user              ; (default is no username (open server))
+;password=123               ; (default is no password (open server))
+
+;[inet_http_server]         ; inet (TCP) server disabled by default
+;port=127.0.0.1:9001        ; (ip_address:port specifier, *:port for all iface)
+;username=user              ; (default is no username (open server))
+;password=123               ; (default is no password (open server))
+
+[supervisord]
+logfile=/var/log/supervisor/supervisord.log  ; (main log file;default $CWD/supervisord.log)
+logfile_maxbytes=50MB       ; (max main logfile bytes b4 rotation;default 50MB)
+logfile_backups=10          ; (num of main logfile rotation backups;default 10)
+loglevel=info               ; (log level;default info; others: debug,warn,trace)
+pidfile=/var/run/supervisord.pid ; (supervisord pidfile;default supervisord.pid)
+nodaemon=false              ; (start in foreground if true;default false)
+minfds=1024                 ; (min. avail startup file descriptors;default 1024)
+minprocs=200                ; (min. avail process descriptors;default 200)
+;umask=022                  ; (process file creation umask;default 022)
+;user=chrism                 ; (default is current user, required if root)
+;identifier=supervisor       ; (supervisord identifier, default is 'supervisor')
+;directory=/tmp              ; (default is not to cd during start)
+;nocleanup=true              ; (don't clean up tempfiles at start;default false)
+;childlogdir=/tmp            ; ('AUTO' child log dir, default $TEMP)
+;environment=KEY=value       ; (key value pairs to add to environment)
+;strip_ansi=false            ; (strip ansi escape codes in logs; def. false)
+
+; the below section must remain in the config file for RPC
+; (supervisorctl/web interface) to work, additional interfaces may be
+; added by defining them in separate rpcinterface: sections
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[supervisorctl]
+serverurl=unix:///var/run/supervisor/supervisor.sock ; use a unix:// URL  for a unix socket
+;serverurl=http://127.0.0.1:9001 ; use an http:// url to specify an inet socket
+;username=chris              ; should be same as http_username if set
+;password=123                ; should be same as http_password if set
+;prompt=mysupervisor         ; cmd line prompt (default "supervisor")
+;history_file=~/.sc_history  ; use readline history if available
+
+; The below sample program section shows all possible program subsection values,
+; create one or more 'real' program: sections to be able to control them under
+; supervisor.
+
+;[program:theprogramname]
+;command=/bin/cat              ; the program (relative uses PATH, can take args)
+;process_name=%(program_name)s ; process_name expr (default %(program_name)s)
+;numprocs=1                    ; number of processes copies to start (def 1)
+;directory=/tmp                ; directory to cwd to before exec (def no cwd)
+;umask=022                     ; umask for process (default None)
+;priority=999                  ; the relative start priority (default 999)
+;autostart=true                ; start at supervisord start (default: true)
+;autorestart=true              ; retstart at unexpected quit (default: true)
+;startsecs=10                  ; number of secs prog must stay running (def. 1)
+;startretries=3                ; max # of serial start failures (default 3)
+;exitcodes=0,2                 ; 'expected' exit codes for process (default 0,2)
+;stopsignal=QUIT               ; signal used to kill process (default TERM)
+;stopwaitsecs=10               ; max num secs to wait b4 SIGKILL (default 10)
+;user=chrism                   ; setuid to this UNIX account to run the program
+;redirect_stderr=true          ; redirect proc stderr to stdout (default false)
+;stdout_logfile=/a/path        ; stdout log path, NONE for none; default AUTO
+;stdout_logfile_maxbytes=1MB   ; max # logfile bytes b4 rotation (default 50MB)
+;stdout_logfile_backups=10     ; # of stdout logfile backups (default 10)
+;stdout_capture_maxbytes=1MB   ; number of bytes in 'capturemode' (default 0)
+;stdout_events_enabled=false   ; emit events on stdout writes (default false)
+;stderr_logfile=/a/path        ; stderr log path, NONE for none; default AUTO
+;stderr_logfile_maxbytes=1MB   ; max # logfile bytes b4 rotation (default 50MB)
+;stderr_logfile_backups=10     ; # of stderr logfile backups (default 10)
+;stderr_capture_maxbytes=1MB   ; number of bytes in 'capturemode' (default 0)
+;stderr_events_enabled=false   ; emit events on stderr writes (default false)
+;environment=A=1,B=2           ; process environment additions (def no adds)
+;serverurl=AUTO                ; override serverurl computation (childutils)
+
+; The below sample eventlistener section shows all possible
+; eventlistener subsection values, create one or more 'real'
+; eventlistener: sections to be able to handle event notifications
+; sent by supervisor.
+
+;[eventlistener:theeventlistenername]
+;command=/bin/eventlistener    ; the program (relative uses PATH, can take args)
+;process_name=%(program_name)s ; process_name expr (default %(program_name)s)
+;numprocs=1                    ; number of processes copies to start (def 1)
+;events=EVENT                  ; event notif. types to subscribe to (req'd)
+;buffer_size=10                ; event buffer queue size (default 10)
+;directory=/tmp                ; directory to cwd to before exec (def no cwd)
+;umask=022                     ; umask for process (default None)
+;priority=-1                   ; the relative start priority (default -1)
+;autostart=true                ; start at supervisord start (default: true)
+;autorestart=unexpected        ; restart at unexpected quit (default: unexpected)
+;startsecs=10                  ; number of secs prog must stay running (def. 1)
+;startretries=3                ; max # of serial start failures (default 3)
+;exitcodes=0,2                 ; 'expected' exit codes for process (default 0,2)
+;stopsignal=QUIT               ; signal used to kill process (default TERM)
+;stopwaitsecs=10               ; max num secs to wait b4 SIGKILL (default 10)
+;user=chrism                   ; setuid to this UNIX account to run the program
+;redirect_stderr=true          ; redirect proc stderr to stdout (default false)
+;stdout_logfile=/a/path        ; stdout log path, NONE for none; default AUTO
+;stdout_logfile_maxbytes=1MB   ; max # logfile bytes b4 rotation (default 50MB)
+;stdout_logfile_backups=10     ; # of stdout logfile backups (default 10)
+;stdout_events_enabled=false   ; emit events on stdout writes (default false)
+;stderr_logfile=/a/path        ; stderr log path, NONE for none; default AUTO
+;stderr_logfile_maxbytes=1MB   ; max # logfile bytes b4 rotation (default 50MB)
+;stderr_logfile_backups        ; # of stderr logfile backups (default 10)
+;stderr_events_enabled=false   ; emit events on stderr writes (default false)
+;environment=A=1,B=2           ; process environment additions
+;serverurl=AUTO                ; override serverurl computation (childutils)
+
+; The below sample group section shows all possible group values,
+; create one or more 'real' group: sections to create "heterogeneous"
+; process groups.
+
+;[group:thegroupname]
+;programs=progname1,progname2  ; each refers to 'x' in [program:x] definitions
+;priority=999                  ; the relative start priority (default 999)
+
+; The [include] section can just contain the "files" setting.  This
+; setting can list multiple files (separated by whitespace or
+; newlines).  It can also contain wildcards.  The filenames are
+; interpreted as relative to this file.  Included files *cannot*
+; include files themselves.
+
+[include]
+files = supervisord.d/*.conf
+
+
+3.mkdir /etc/supervisord.d
+
+4.cat /etc/systemd/system/multi-user.target.wants/supervisord.service
+
+[Unit]
+Description=Process Monitoring and Control Daemon
+After=rc-local.service nss-user-lookup.target
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/supervisord -c /etc/supervisord.conf
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+5.vi /etc/supervisord.d/basecenter.conf
+[program:basecenter]
+command=/opt/go/basecenter/bin/basecenter -conf=/opt/go/basecenter/etc -logpath=/opt/go/basecenter/log -env=sit -consul=172.16.0.91:30085
+
+autostart=true
+startretries=3
+autorestart=true
+stopsignal=TERM
+
+#user=apps
+
+redirect_stderr=true
+stdout_logfile_maxbytes=20MB
+stdout_logfile_backups=20
+stdout_logfile=/opt/go/basecenter/log/error.log
+===============================================================
+
+
+
+
+=================================================================
+user.service
+[Unit]
+Description=pd-user
+After=network.target
+
+[Service]
+User=root
+Group=root
+Type=simple
+EnvironmentFile=-/nmapps/conf/java/user.conf
+ExecStart=/usr/bin/java \
+    -Xms2048m \
+    -Xmx2048m \
+    -Xmn1024m \
+    -XX:+UseConcMarkSweepGC \
+    -XX:CMSInitiatingOccupancyFraction=75 \
+    -XX:+UseCMSInitiatingOccupancyOnly \
+    -XX:+PrintGCDetails \
+    -XX:+PrintGCDateStamps \
+    -Xloggc:/nmapps/logs/java/saas-user/user-gc.log \
+    -Dapp.id=user \
+    -Dapollo.meta=http://172.16.0.37:8080 \
+    -Denv=PRO \
+    -jar /nmapps/java/saas-user-rest.jar \
+    cn.nome.saas.user.UserBootstrap \
+    --spring.profiles.active=prod \
+    --server.port=38080 \
+    --logging.file=/nmapps/logs/java/saas-user/user.log \
+    --spring.cloud.consul.host=172.16.0.42 \
+	--spring.cloud.consul.port=30085 \
+	--spring.application.name=user \
+    --spring.cloud.consul.discovery.tags=java,backend,miniProgram
+
+RestartSec=10
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+=========================================================================
+
+
+
+proxy-93.service
+[Unit]
+Description=Proxy 93
+After=network.target
+
+[Service]
+Type=Simple
+ExecStart=/usr/bin/socat TCP-LISTEN:8483,fork TCP:134.175.219.93:8483
+ExecReload=/bin/kill -s HUP $MAINPID
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
+#TimeoutStartSec=0
+Delegate=yes
+KillMode=process
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+==================================================
+
+consul agent -server -bootstrap-expect 1 -config-dir /opt/consul/config/service.json -data-dir=/opt/consul/data -node=agent-1 -bind=172.16.0.36 -client 172.16.0.36 -ui
+
+
+/usr/bin/java -Xms512m -Xmx512m -Xmn96m -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:/home/log/promo/promo-gc.log -Dapp.id=qa2-promo -Dapollo.meta=http://172.16.0.9:8080 -Denv=FAT
+-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=31097  -Djava.io.tmpdir=/opt/tmp -jar /home/java/saas-promo-rest.jar cn.nome.saas.promo.PromoBootstrap --spring.profiles.active=prod --server.port=38081 --logging.file=/home/log/promo/promo.log --spring.cloud.consul.host=172.16.0.91 --spring.cloud.consul.port=30085 --spring.cloud.consul.discovery.tags=java,backend,miniProgram
+
+nohup java -Xms64m -Xmx64m -jar /apps/svr/java/saas-permission-rest.jar cn.nome.saas.permission.PermissionBootstrap --server.port=8001 --spring.cloud.consul.host=172.16.0.36  --spring.datasource.url="jdbc:mysql://172.16.0.36:5506/saas_permission?useUnicode=true&characterEncoding=UTF8&useSSL=false" --spring.datasource.username=root --spring.datasource.password=NoMe@123.456 &
+--spring.config.location=/opt/java/config/permission/permission-dev.yml
+
+==================================================================
+
+echo '{
+  "id": "front-srm-qa",
+  "name": "front-srm-qa",
+  "tags": [
+    "traefik.enable=true", 
+    "passHostHeader=true", 
+    "traefik.frontend.entryPoints=http",
+    "traefik.frontend.rule=Host:srmtest.op.nome.cn" 
+  ],
+  "address": "172.16.0.20",
+  "port": 8084,
+  "checks": [
+    {
+      "id": "front-srm-qa",
+      "name": "Service front-srm-qa check",
+      "http": "http://172.16.0.20:8084/index.html",
+      "method": "GET",
+      "interval": "10s",
+      "timeout": "1s"
+    }
+  ]
+}' | curl \
+    --request PUT \
+    --data @- \
+    http://172.16.0.42:8500/v1/agent/service/register
+
+	
+	
+curl \
+    --request PUT \
+    http://172.16.0.42:8500/v1/agent/service/deregister/front-pdc
+	
+	
+mac:
+ssh -qTfnN -D 0.0.0.0:1080 apps@134.175.160.10 -p 30022
+
+#  -q 静默模式 
+#  -T 禁用伪终端分配 
+#  -f  后台运行 
+#  -n  阻止从标准输入读取。后台运行的话，必须使用。 
+#  -N 不执行远程命令 
+#  -D [bind_address : port] 本地动态应用级端口转发。没有指定address将监听在127.0.0.1上。
+
+
+=====================================================================
+jenkins go项目部署：
+Additional Behaviours：check out to a sub-directory 
+${WORKSPACE}/src/git.nome.com/golang/auroramall
+
+execute shell：
+#!/bin/bash
+export GOPATH=${WORKSPACE}
+#cd ${WORKSPACE}/src/git.nome.com/golang/auroramall && make build
+cd ${WORKSPACE}/src/git.nome.com/golang/auroramall && make build -mod vendor
+=====================================================================
+
+
+=====================================================================
+php部署：
+rsync -avzP -e "ssh -i $HOME/.ssh/nmkey -p 30022" --exclude "storage" --exclude ".env" --exclude "artisan" --exclude ".git" --exclude "phpunit.xml" --exclude "README.md"  --exclude "supervisor.conf.example" --exclude "tests"  --delete /${WORKSPACE}/  root@172.16.0.33:/opt/php/saas-mall
+
+ssh -i $HOME/.ssh/nmkey root@172.16.0.33 "chown -R apps:apps /opt/php/saas-mall"
+=====================================================================
+
+
+前端部署：
+sudo docker run  --rm -v ${WORKSPACE}:/src ccr.ccs.tencentyun.com/nmsre/npm_taobao:lts sh -c "cd /src && npm install && npm run build"
+
+
+ssh转发
+-g Allow remote hosts to connect to forwarded ports.
+在-L/-R/-D参数中，允许远程主机连接到建立的转发的端口，如果不加这个参数，只允许本地主机建立连接。
+
+或者修改配置文件 ~#vi /etc/ssh/sshd_config
+在文件最后加入 gatewayports yes 
+重启ssh服务
+
+
+autossh -M 8484 -fCNR 8483:10.200.102.21:8483 root@193.112.162.77
+
+本地端口转发：
+有时，绑定本地端口还不够，还必须指定数据传送的目标主机，从而形成点对点的"端口转发"。为了区别后文的"远程端口转发"，我们把这种情况称为"本地端口转发"（Local forwarding）。
+假定host1是本地主机，host2是远程主机。由于种种原因，这两台主机之间无法连通。但是，另外还有一台host3，可以同时连通前面两台主机。因此，很自然的想法就是，通过host3，将host1连上host2。
+我们在host1执行下面的命令：
+    　　$ ssh -L 2121:host2:21 host3
+命令中的L参数一共接受三个值，分别是"本地端口:目标主机:目标主机端口"，它们之间用冒号分隔。这条命令的意思，就是指定SSH绑定本地端口 2121，然后指定host3将所有的数据，转发到目标主机host2的21端口（假定host2运行FTP，默认端口为21）。
+这样一来，我们只要连接host1的2121端口，就等于连上了host2的21端口。
+    　　$ ftp localhost:2121
+"本地端口转发"使得host1和host3之间仿佛形成一个数据传输的秘密隧道，因此又被称为"SSH隧道"。
+
+
+
+
+1.安装supervisor
+
+#pip  
+pip install supervisor  
+
+#ubuntu  
+sudo apt-get install supervisor  
+
+#centos （可能需要先安装epel源） 
+yum install epel-release
+yum -y install supervisor
+
+
+cat /usr/lib/systemd/system/supervisord.service 
+[Unit]
+Description=Process Monitoring and Control Daemon
+After=rc-local.service nss-user-lookup.target
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/supervisord -c /etc/supervisord.conf
+
+[Install]
+WantedBy=multi-user.target
+
+----------------------------------------------------------------
+
+basecenter.conf:
+[program:basecenter]
+environment=A="b"
+command=/opt/go/basecenter/bin/basecenter -conf=/opt/go/basecenter/etc -logpath=/opt/go/basecenter/log -env=sit -consul=172.16.0.91:30085
+
+autostart=true
+startretries=3
+autorestart=true
+stopsignal=TERM
+
+#user=apps
+
+redirect_stderr=true
+stdout_logfile_maxbytes=20MB
+stdout_logfile_backups=20
+stdout_logfile=/opt/go/basecenter/log/error.log
+
+-----------------------------------------------------------------------------------

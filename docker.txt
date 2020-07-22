@@ -19,7 +19,14 @@ systemctl restart docker
    docker pull hub.cloudak47.com:5000/jenkins :拉取镜像。
 
 4、docker run 从镜像创建一个容器并运行指定的命令常用参数-i -d，建议用—-name命名这个容器，命名后可以使用容器名访问这个容器。
+--link
+--net or --network default
+--network container:nginx
+
 例如：docker run --name myweb -d -p 8081:8080  ubuntu:web 
+
+docker run --name ubuntu  -d  -it ubuntu:18.04 /bin/bash
+                  容器名           镜像名
 
 在容器中安装新的程序(wget命令)
 $docker run learn/tutorial apt-get install -y wget
@@ -34,7 +41,7 @@ $ docker commit 1861c071d861 learn/wget
 ad2245a8acd8014c39ad46b503cc8e74ce4202d9b4b4fdf48596b596b88059b4
 执行完docker commit命令之后，返回新版本镜像的id号
 
-5、docker exec -it [容器名称|id] /bin/bash 连接到容器上运行bash
+5、docker exec -it [容器名称|id] /bin/bash 进入到容器，运行bash
 例如：docker exec -it myweb /bin/bash 
 
 6、docker logs CONTAINER 查看日志，如run命令后的运行结果，Docker logs -f 查看实时的日志。
@@ -46,7 +53,30 @@ ad2245a8acd8014c39ad46b503cc8e74ce4202d9b4b4fdf48596b596b88059b4
 
 9、检查运行中的镜像：docker inspect 2e079c9eacac4
 
+10、给本地镜像打标签：
+docker tag ubuntu:latest myubuntu:14.04
 
+获取镜像的详细信息：
+docker inspect ubuntu:14.04
+docker inspect --format={{.NetworkSettings.IPAddress}} mynginx
+
+
+获取镜像的历史，列出各层的创建信息
+docker history ubuntu:14.04
+
+docker system df
+
+docker stats：容器的状态
+
+查看运行中某个容器的进程，容器id是f41d95a52943
+ docker top f41d95a52943
+ 
+可以使用 docker rm $(docker ps -qa) 一次性删除所有的容器，docker rmi $(docker images -q) 一次性删除所有的镜像。
+
+
+复制文件：
+	docker cp 需要拷贝的文件或目录  容器名称:容器目录  
+	docker cp 容器名称:容器目录     需要拷贝的文件或目录
 
 
 docker添加国内仓库安装iredmail
@@ -56,16 +86,10 @@ centos 7：
 
 sudo tee /etc/docker/daemon.json <<-'EOF'
 {
-  "registry-mirrors": ["https://registry.docker-cn.com"]
+  "registry-mirrors": ["https://registry.docker-cn.com","https://hub-mirror.c.163.com", "https://docker.mirrors.ustc.edu.cn"]
 }
 EOF
 
-root@clouder:~# cat /etc/docker/daemon.json 
-{
-  "registry-mirrors": ["https://registry.docker-cn.com"]
-}
-
- 
 
 systemctl restart docker
 
@@ -82,6 +106,28 @@ sudo docker run -d --name="mail" --restart=always -p 10443:443 -P -h mail.exampl
 管理后台：https://localhost:10443/iredadmin
 With login: postmaster@example.com
 And password: password_pm
+
+
+centos 8:
+安装docker ce
+systemctl disable firewalld
+systemctl stop firewalld
+
+# step 1: 安装必要的一些系统工具
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2 
+# Step 2: 添加软件源信息
+sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+
+# Step 3: 更新并安装 Docker-CE
+sudo yum makecache
+yum install https://download.docker.com/linux/fedora/30/x86_64/stable/Packages/containerd.io-1.2.6-3.3.fc30.x86_64.rpm
+
+sudo yum -y install docker-ce docker-ce-cli
+# Step 4: 开启Docker服务
+sudo systemctl enable docker
+sudo systemctl start docker
+
 
 
 ubuntu:
@@ -110,3 +156,235 @@ sudo docker run -d --name="mail" --restart=always -p 10443:443 -P -h mail.exampl
 With login: postmaster@example.com
 And password: password_pm
 
+
+
+搭建私有镜像仓库：
+yum install -y docker-distribution
+#1、获取仓库中的镜像
+curl 127.0.0.1:5000/v2/_catalog
+
+#2、获取镜像的标签
+curl registry_url/<name>/tags/list
+
+#1、默认docker 本地镜像
+
+/var/lib/docker/image/overlay2/imagedb/content/sha256
+
+#2、默认docker 容器地址
+
+/var/lib/docker/containers
+
+
+生成证书：
+openssl req -newkey rsa:2048 -nodes -sha256 -x509 -days 365 -keyout certs/domain.key  -out certs/domain.crt
+
+docker client安装我们的CA证书：
+
+$ sudo mkdir -p /etc/docker/certs.d/mydockerhub.com:5000
+$ sudo cp certs/domain.crt /etc/docker/certs.d/mydockerhub.com:5000/ca.crt
+$ sudo service docker restart //安装证书后，重启Docker Daemon
+
+
+
+Harbor私有镜像仓库无坑搭建:
+1. harbor介绍
+Docker容器应用的开发和运行离不开可靠的镜像管理，虽然Docker官方也提供了公共的镜像仓库，但是从安全和效率等方面考虑，部署我们私有环境内的Registry也是非常必要的。Harbor是由VMware公司开源的企业级的Docker Registry管理项目，它包括权限管理(RBAC)、LDAP、日志审核、管理界面、自我注册、镜像复制和中文支持等功能。
+
+2. docker-ce的安装
+yum install -y yum-utils device-mapper-persistent-data lvm2
+yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+yum -y install docker-ce docker-compose
+systemctl start docker 
+systemctl enable docker
+3. docker-compose的安装
+4. Harbor私有仓库的安装
+5. 客户端连接镜像仓库配置过程
+
+
+================================================
+私有仓库方法3：
+docker pull registry
+docker run -d --name=registry --restart=always -p 5000:5000 registry
+curl "http://ip:5000/v2/_catalog"
+
+vim /etc/docker/daemon.json:
+"registry-mirrors": ["https://registry.docker-cn.com","https://hub-mirror.c.163.com", "https://docker.mirrors.ustc.edu.cn"],
+"insecure-registries": ["http://ip:5000"]
+
+docker tag nginx 192.168.128.133:5000/mynginx
+docker push 192.168.128.133:5000/mynginx
+
+============================================================================================
+ubuntu 19.10安装docker-ce：
+apt update
+apt install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+apt install curl
+curl -fsSL http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
+sudo apt-get install docker-ce  docker-ce-cli containerd.io docker-compose
+
+apt-cache madison docker-ce
+
+修改docker daemon配置：
+cat > /etc/docker/daemon.json <<EOF
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "registry-mirrors": ["https://registry.docker-cn.com","https://hub-mirror.c.163.com", "https://docker.mirrors.ustc.edu.cn"],
+  "storage-driver": "overlay2"
+}
+EOF
+
+============================================================================================
+CentOS 安装docker：
+
+安装docker ce
+# step 1: 安装必要的一些系统工具
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2 
+# Step 2: 添加软件源信息
+sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+# Step 3: 更新并安装 Docker-CE
+sudo yum makecache fast
+sudo yum -y install docker-ce docker-compose
+# Step 4: 开启Docker服务
+sudo systemctl enable docker
+sudo systemctl start docker
+
+=========================================================================
+
+创建镜像的方法主要有3种：
+1、基于已有镜像的容器创建
+	docker commit -a author -m commit_info container [REPOSITORY[:TAG]]
+2、基于本地模板导入
+	docker import file image:tag
+3、基于Dockerfile创建
+
+Save命令用于持久化镜像（不是容器）：
+docker images
+
+docker save nginx:v3 |gz > nginx.tar.gz
+docker load -i nginx.tar.gz  或者docker load < nginx.tar.gz
+
+
+Export命令用于持久化容器（不是镜像）：
+docker ps -a
+docker export <CONTAINER ID>  >/home/export.tar
+
+
+docker load和docker import的区别：
+docker export是从容器导出的，将丢失所有的历史记录和元数据信息。
+而docker save保存的镜像文件将保存完整记录，体积也更大。
+
+
+dockerfile:
+
+Dockerfile:
+From scratch
+MAINTAINER locutus "locutus@foxmail.com"  
+ENV key value
+RUN <command>  #shell模式，以#/bin/sh -c command 形式执行, 如RUN echo hello
+RUN ["executable", "param1", "param2" ... ] # exec模式，指定其他形式的shell来运行指令 ,如RUN ["/bin/bash" ,“-c”,“echo  hello" ]
+ADD source_dir/file dest_dir/file  #如果是一个压缩文件，会自动解压
+COPY source_dir/file dest_dir/file #如果有压缩文件不能解压
+WORKDIR path_dir
+
+CMD   command param1 param2     #提供容器运行的默认命令，shell模式，该指令只能在文件中存在一次，如果有多个，则只执行最后一条。当Dockerfile指定了ENTRYPOINT时，其作为ENTRYPOINT指令的默认参数 
+
+CMD   ["executable","param1","param2"]         # 提供容器运行的默认命令，exec模式  
+ 
+ENTRYPOINT ["executable", "param1", "param2"]  #（提供容器运行的默认命令）
+指定容器运行时执行的命令，可以多次设置，但是只有最后一个有效。构建容器中的ENTRYPOINT指令不会被run的cmd覆盖，ENTRYPOINT指令仍会执行。
+
+
+与CMD指令配合使用来指定ENTRYPOINT的默认参数。ENTRYPOINT指令只能使用exec模式，指定执行命令，而不能指定参数；CMD指令不是一个完整的可执行命令，仅仅是参数部分。
+在Dockerfile中，写如下内容：
+
+FROM ubuntu  
+
+ENTRYPOINT ["/usr/bin/nginx"]  
+
+CMD ["-h"]    
+
+
+在命令行中，执行以下命令
+# docker build -t="locutus1/nginx"  .    # 构建docker镜像
+
+# docker run -p 80 --name nginx_test2 -d locutus1/nginx -g "daemon  off;"                                                             
+
+# docker ps -l                                                           
+
+命令# docker run 的-g “daemon off;” 指令将CMD中的-h指令覆盖。 
+
+
+USER  user         
+USER  uid
+USER  user：group
+USER  uid：gid
+USER  user：gid
+USER  uid：group 
+
+
+
+docker build -t nginx:v3 -f Dockerfile .
+
+=============================================================
+
+docker maven插件：
+vim /lib/systemd/system/docker.service：
+ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock
+
+systemctl daemon-reload
+systemctl restart docker
+
+修改pom.xml
+
+mvn clean package docker:build -DpushImage 
+
+
+=============================================================
+docker pull gogs/g ogs
+
+docker run -d --name=gogs --restart=always -p 30022:22 -p 3000:3000 -v /opt/gogs_data:/data  gogs/gogs
+
+
+==============================================================
+
+
+
+docker-compose
+
+
+docker-machine:
+docker-machine create -d virtualbox test
+docker-machine create -d generic --generic-ip-address=192.168.128.134 --generic-ssh-user=root --generic-ssh-key ~/.ssh/id_rsa dev
+
+
+docker-machine ip test
+docker-machine ssh test
+
+
+
+docker swarm
+管理节点可以有多个，但是只有一个可以成为leader，leader通过raft协议实现。
+
+管理节点执行：
+docker swarm init --advertise-addr 192.168.128.133
+docker node ls
+docker node promote cent
+
+docker service ls
+docker service create --replicas 3 -p 8080:80 --name mynginx nginx
+
+docker service ps mynginx
+docker service logs -f mynginx
+
+
+
+
+docker run --volume=/:/rootfs:ro --volume=/var/run:/var/run:rw --volume=/sys:/sys:ro --volume=/var/lib/docker:/var/lib/docker:ro --volume=/dev/disk:/dev/disk:ro --publish=8080:8080 --detach=true --name=cadvisor --restart=always google/cadvisor
+
+
+FROM alpine:latest

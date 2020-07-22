@@ -1,0 +1,91 @@
+
+
+
+
+
+在httprunner中使用代理：
+pip3 install pysocks
+
+debugtalk.py:
+
+import os
+
+os.environ['http_proxy'] = 'http://127.0.0.1:8888'
+os.environ['https_proxy'] = 'https://127.0.0.1:8888'
+
+
+如果是socks: 
+os.environ['http_proxy'] = 'socks5://127.0.0.1:8888'
+os.environ['https_proxy'] = 'socks5://127.0.0.1:8888'
+
+
+----------------------------------------------------------------------------
+testcase 之间传递参数
+
+使用 output/export 和 extract 可以在 testcase 之间传递参数
+testcase 级的变量:
+
+    - config 中设置的 variables
+    teststep 中 extract 提取的
+
+可以在 testcase 的 - config 中通过 output 或者 export (2.2.2 版本添加) 将其暴露，然后在该 testcase 被引用时通过 extract 将变量提取出来使用。
+
+
+--failfast  --log-level debug
+
+
+
+
+setup_hooks: 在 HTTP 请求发送前执行 hook 函数，主要用于准备工作；也可以实现对请求的 request 内容进行预处理。
+
+teardown_hooks: 在 HTTP 请求发送后, 最终数据返回前执行 hook 函数，主要用于测试后的清理工作；也可以实现对响应的 response 进行修改，例如进行加解密等处理。
+
+
+
+
+
+断言
+
+- test:
+    name: 添加海外白名单
+    api: api/admin/addWhiteList.yml
+    variables:
+      headers: ${login_admin($base_url,$username)}
+      expect_result: ["用户名已存在","添加成功"]
+    extract:
+      suce: content.errorMsg
+    validate:
+      - contained_by: [$suce,$expect_result]
+
+	  
+12）实际结果被期望结果包含
+contained_by: ["content.result",'token']
+13）实际结果的字段类型和期望结果相同：type_match
+type_match: ["content.result",'int/float/str/list等']
+14）检查实际结果和期望结果是否都是basestring的实例，如果都是就用正则匹配两个输入参数：regex_match
+regex_match: ["content.result",'正则表达式']
+15）验证check_value是否已expect_value开始
+startswith: ["content.result",'abc']
+16）验证check_value是否已expect_value结尾
+endswith: ["content.result",'abc']
+
+
+参数化：
+parameters:
+        - user_agent: ["iOS/10.1", "iOS/10.2", "iOS/10.3"] //列表参数化
+		- app_version: ${P(app_version.csv)} //csv参数化
+		- eid-name: ${P(add.csv)}//关联参数
+        - os_platform: ${get_os_platform()} //自定义函数参数化
+		
+		
+		
+  
+
+    extract  :passing former teststep's (as a testcase) export value to next teststep
+    export ： testcase config
+
+extract从当前HTTP请求的相应结果中提取参数，并保存到参数变量中(如token)
+    extract:
+        token: cookies.nome_token   	
+
+"output":                     //optional; list of string; 整个用例集输出的参数列表，可输出的参数包括variable和extract的参数； 在log-leve为debug模式下，会在terminal中打印出参数内容   		

@@ -24,11 +24,11 @@ show dbs/databases
 
 5、查询数据库中的所有文档
 show tables/collections
-db.[document].find()
-db.[document].findOne()  //查询第一条数据
+db.[documentname].find()
+db.[documentname].findOne()  //查询第一条数据
 
 6、清空数据
-db.[document].remove({})
+db.[documentname].remove({});
 
-
-
+7、删除collection
+db.[documentname].drop();

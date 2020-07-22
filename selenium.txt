@@ -3,15 +3,144 @@ mirrors:
 	http://npm.taobao.org/mirrors/geckodriver
 	http://npm.taobao.org/mirrors/chromedriver
 
-
+	http://chromedriver.storage.googleapis.com/index.html
+	
 css定位：
 用#表示id
 用.表示class
 
 xpath定位：
+1、通过路径：绝对路径、相对路径
+2、利用元素属性：//*[@id='kw']
+3、层级与属性结合：//input[@id='kw']
+4、属性与逻辑结合：//input[@id='kw' and @name='wd']
+
+//*[text()="xxx"]
+//*[starts-with(@attribute,"xxx")]
+//*[contains(@attribute,"xxx")]
+
 dr.find_element_by_xpath("//input[@id='kw' and @name='wd']").send_keys("selenium")
 
 //form[@id='form']/span/input
+
+
+XPATH:
+
+/ 表示绝对路径，绝对路径是指从根目录开始 
+// 表示相对路径 
+. 表示当前层 
+.. 表示上一层 
+* 表示通配符 
+@ 表示属性 
+[] 属性的判断条件表达式
+
+//div[@id='input']/input ，表示选择一个id为’input’的div节点的input子节点
+
+//table//input[@id='user'] ，表示选择table的子孙后代中id为user的input节点
+
+//input[@name='identity' and @class='Volvo'] ，有的节点，只用一个属性无法定位出来，必须要用到多个属性进行组合定位，用连接符and。这个XPATH表示选择一个name为identity并且class为Volvo的input节点
+
+//input[@name='identity' or @class='Volvo'][1] 见图13，我们刚知道了，//input[@name='identity' or @class='Volvo']匹配出4个，我们只需要第一个，怎么办？加index即可：//input[@name='identity' or @class='Volvo'][1]，请注意，xpath的index是以1开头的，并不是0，请切记！取最后一个，//input[@name='identity' or @class='Volvo'][last()]
+
+
+
+XPATH的几个常用函数
+1.contains ()： //div[contains(@id,'in')] ,表示选择id中包含有’in’的div节点
+2.text()：由于一个节点的文本值不属于属性，比如“<a class=”baidu“ href=”http://www.baidu.com“>baidu</a>”,所以，用text()函数来匹配节点：//a[text()='baidu']
+3.last()：前面已介绍
+4.starts-with()： //div[starts-with(@id,'in')] ，表示选择以’in’开头的id属性的div节点
+5.not()函数，表示否定，//input[@name=‘identity’ and not(contains(@class,‘a’))] ，表示匹配出name为identity并且class的值中不包含a的input节点。 not()函数通常与返回值为true or false的函数组合起来用，比如contains(),starts-with()等，但有一种特别情况请注意一下：我们要匹配出input节点含有id属性的，写法如下：//input[@id]，如果我们要匹配出input节点不含用id属性的，则为：//input[not(@id)]
+
+
+
+css定位比xpath定位要快
+css定位方式：
+	1、id：#id
+	2、class：.class
+	3、根据元素的标签名选择：input
+	4、属性定位input[id="kw"]
+	5、层级选择：p[id="p1"]>input
+	
+driver.find_element_by_css_selector("[alt*='邮箱']")
+
+	
+	
+显示等待（针对单个元素）：
+WebDriverWait(driver, 超时时长, 调用频率, 忽略异常).until(可执行方法, 超时时返回的信息)	
+	
+隐式等待（全局）：只有在页面完全加载完成才执行下一步
+implicitly_wait(timeout)
+	
+python selenium调用浏览器
+
+
+Select类：
+
+
+警告框：
+alert = driver.switch_to.alert
+print(alert.text)
+alert.accept()
+
+
+
+操作js：
+#最底层
+js1="window.scrollTo(0,1000)
+
+#最顶层
+js2="window.scrollTo(0,0)
+driver.execute_script(js2)
+
+日期控件：
+js = "document.getElementById('train_date').removeAttribute('readonly')"
+driver.execute_script(js)
+
+
+切换frame：
+driver.switch_to.frame(frame的name或id)
+回到默认页面：
+driver.switch_to.default_content()
+
+
+
+多窗口切换：
+driver.current_window_handle
+driver.current_handles
+driver.switch_to.window(handle)
+
+
+
+cookies:
+
+cookies = {"name": "token", "value": "xxxx"}
+driver.add_cookie(cookies)
+print(driver.get_cookies())
+
+--------------------------
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+
+binary = FirefoxBinary(r"D:\Program Files\Mozilla Firefox\firefox.exe")
+driver = webdriver.Firefox(firefox_binary=binary)
+
+----------------------------------------
+profile_dir="C:\Users\admin\AppData\Roaming\Mozilla\Firefox\Profiles\wrdjxgdk.default-1434681389856"
+profile = webdriver.FirefoxProfile(profile_dir)
+driver = webdriver.Firefox(profile)
+
+----------------------------------------
+myweb="192.168.9.111"
+myport="8080"
+
+profile=webdriver.FirefoxProfile()
+#设置代理
+profile.set_preference("network.proxy.type", 1)
+profile.set_preference("network.proxy.http", myweb)
+profile.set_preference("network.proxy.http_port", myport)
+#设置文件下载目录
+profile.set_preference("browser.download.folderList", 2)
+profile.set_preference("browser.download.dir", "C:\\test")
+driver=webdriver.Firefox(profile)
 
 
 
@@ -280,4 +409,9 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 
 
+=====================================================================================================
+PO：pageobject，页面对象模型，是一种自动化测试设计模式，它将页面定位和业务操作分开，达到分离测试对象（元素对象）和测试脚本（用例脚本）的目的，提高用例的可维护性。
+1、集中管理元素对象，便于应对元素的变化
+2、集中管理一个page内的公共方法，便于测试用例的编写
+3、后期维护方便，不需要重复的复制和修改代码
 

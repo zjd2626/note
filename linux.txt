@@ -21,7 +21,7 @@ kill -9 pid
 5、grep MemTotal /proc/meminfo
       grep SwapTotal /proc/meminfo
       
-6、vim
+6、vim filename +行号
 i：在当前光标之前插入
 I：在当前行首插入
 a：在当前光标之后插入
@@ -33,7 +33,15 @@ dd：删除一行，
 ndd：在当前光标位置删除n行
 x：从当前光标位置处删除一个字符，nx从当前光标处删除n个字符
 X：删除当前光标的前一个字符，nX删除当前光标前的n个字符
-D：删除从当前光标到行尾的内容
+
+
+d0:从光标位置到行首全部删除
+D：从光标位置到行尾全部删除
+d}:从光标位置到段落结束全部删除
+
+<<:减少缩进
+>>:增加缩进
+.：重复执行
 
 G：移动到最后一行，nG移动到第n行
 ^/0（零)：把光标移动到当前行行首
@@ -44,9 +52,12 @@ Enter：把光标移动到下一行的起始位置
 空格：光标右移一个位置
 、：在上一次光标所在位置和当前光标位置间切换
 
-% s/^/#/g 来在全部内容的行首添加 # 号注释
-:1,10 s/^/#/g 在1~10 行首添加 # 号注释
-
+行内移动：
+w：向后移动一个单词
+b：向前移动一个单词
+0：行首
+$: 行尾
+^: 行首第一个非空白字符的位置
 
 Ctrl+F：向上翻一页
 Ctrl+B：向下翻一页
@@ -55,6 +66,17 @@ Ctrl+D：向下翻半页
 Ctrl+E：向上翻一行
 Ctrl+Y：向下翻一行
 Ctrl+G：显示文件名和行号
+
+{：跳转到上一段落
+}：跳转到下一段落
+
+%：跳转到（）
+
+:%s/^/#/g 在全部内容的行首添加 # 号注释
+:1,10s/^/#/g 在1~10 行首添加 # 号注释
+
+
+
 
 Esc：可以在命令模式和输入模式之间切换
 ZZ：保存退出
@@ -89,10 +111,7 @@ vimrc：set nu；set hlsearch
 vimrc.tiny： set backspace=2;set nocompatible
 
 vi中以十六进制查看文件:
-:%!xxd
-
-恢复：
-:%!xxd -r
+:%!xxd,恢复:%!xxd -r
 
 7、shell通配符：*、？、[]
 ？匹配一个字符、[]匹配所有出现在方括号里面的字符
@@ -253,11 +272,30 @@ Wed Jan  6 22:02:33 CST 2016
 25、lsof命令
 lsof：列出所有打开的文件
 lsof /usr/bin/mysqld_safe：查看这个文件的使用情况
+
+lsof +d /home/jenkins: 查看某个目录被打开的文件
+-a 多个条件同时成立，例如找root用户打开/proc的情况
+lsof +d /proc -a -u root
+
+
 lsof -c mysqld_safe：查看这个命令的使用情况
 lsof -u root：查看这个用户打开的文件
 lsof -i:3306：列出3306端口的使用情况
 lsof -p 2508：列出进程2508的使用情况
 lsof -i：列出所有的网络连接
+lsof -i tcp
+
+使用fuser来查文件或目录被谁占用
+fuser /opt/mysql/mysql.log
+
+fuser -uvm /proc  #-u显示用户名，-v详细信息,-m显示目录下所有文件和目录被占用情况
+fuser -km test.txt  #杀掉所有占用该文件的进程
+
+w
+echo -e '\033[31mI will close your connection!!!\033[0m' >/dev/pts/0
+fuser -k /dev/pts/0
+
+
 
 
 26、libbz2so=`ldconfig -p | awk -F" " '$1=="libbz2.so.1" && $2~/'${LDCONFIG_ARCH}'/ {print $NF}'`
@@ -351,6 +389,40 @@ netsh interface ipv4 set interface "loopback" weakhostsend=enabled
 4.vi /etc/udev/rules.d/70-persistent-net.rules
 SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="00:0c:29:28:ac:54", ATTR{type}=="1", KERNEL=="eth*", NAME="eth0"
 
+设置静态ip：
+vim /etc/sysconfig/network-scripts/ifcfg-eth0:
+TYPE=Ethernet
+BOOTPROTO=static
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_PEERDNS=yes
+IPV6_PEERROUTES=yes
+IPV6_FAILURE_FATAL=no
+NAME=eth0
+UUID=0fe1e5ef-b707-4dbf-a6c4-cdc98786caa7
+DEVICE=eth0
+ONBOOT=yes
+IPADDR=192.168.128.100
+NETMASK=255.255.255.0
+GATEWAY=192.168.128.2
+DNS1=xxx
+DNS2=xxx
+
+（4）重启网卡 nmcli c reload ens33（网卡名，上诉配置文件中有）
+
+（5）立即生效connection（3种方法）
+
+         nmcli c up ens33
+         nmcli d reapply ens33
+         nmcli d connect ens33
+
+		 
+dnf -y install epel-release
 
 32、ulimit -n
 ulimit -a
@@ -365,7 +437,7 @@ netstat -n | awk '/^tcp/ {++S[$NF]} END {for(a in S) print a, S[a]}'
 
 33、ps -eo pid,uname,comm,cmd,etime
 ps aux --sort=-pcpu,-pmem  #-降序排列
-
+ps aux |grep java |sort -rn -k 6 |head -n 3 #这个命令的用途是，查找所有java进程，然后按第六列内存占用率降序排列，取前3行
 
 34、netstat -an
 ss -s
@@ -381,3 +453,53 @@ iptables -t filter -L
 tee -a filename :-a 表示追加
 cat tttttt >filename 2>&1
 cat tttttt >/dev/null 2>&1
+
+
+
+cat /etc/fstab
+ls -l !$（上一条命令的最后一个参数，或者先按Esc，再按.）
+
+
+
+===================================================================================
+
+login shell:
+“login shell” 代表用户登入, 比如使用 “su -“ 命令, 或者用 ssh 连接到某一个服务器上, 都会使用该用户默认 shell 启动 login shell 模式。该模式下的 shell 会去自动执行 /etc/profile 和 ~/.profile 文件, 但不会执行任何的 bashrc 文件, 所以一般在 /etc/profile 或者 ~/.profile 里我们会手动去 source bashrc 文件.
+
+
+而 no-login shell 的情况是我们在终端下直接输入 bash 或者 bash -c “CMD” 来启动的 shell.该模式下是不会自动去运行任何的 profile 文件.
+
+
+interactive shell 是交互式shell, 顾名思义就是用来和用户交互的, 提供了命令提示符可以输入命令.
+该模式下会存在一个叫 PS1 的环境变量, 如果不是 login shell 的则会去 source /etc/bash.bashrc 和 ~/.bashrc 文件
+
+
+non-interactive shell 则一般是通过 bash -c “CMD” 来执行的bash.该模式下不会执行任何的 rc 文件, 不过还存在一种特殊情况这个我之后详细讲述
+
+
+通过 “ssh server CMD” 执行的命令 或 通过程序执行远程的命令：
+这是最特殊的一种模式, 理论上应该既是 非交互 也是 非登入的, 但是实际上他不会设置 PS1, 但是还会执行
+
+/etc/bash.bashrc
+~/.bashrc
+
+
+
+bash -c “CMD” 执行，不会执行 profile ，也不会执行 rc
+
+
+编写一个shell程序。将一个/tmp目录下以fuck开头的文件中的www.baidu.com替换为www.baidu.cn,并将这些文件拷贝到/etc/tmp文件夹下
+
+find  /tmp -name "fuck*" |xargs sed -i "s/www.baidu.com/www.baidu.cn/g"
+find  /tmp -name "fuck*" |xargs  cp -rf {} /tmp/
+
+如果是重命名文件名：
+for var in `ls fuck*`;do mv -f $var `echo $var|sed 's/www.baidu.cn/www.baidu.com/' `;done
+
+
+假如我们现在有一堆 .txt文件，我们想将它们的后缀改成 .cpp。先来看完整的代码：
+#!/bin/bash
+for name in `ls *.txt`
+do
+mv $name ${name%.txt}.cpp
+done

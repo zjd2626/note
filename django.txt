@@ -1,0 +1,419 @@
+MTV模型：
+Model：
+Templs：
+View:     接收请求进行处理，与M和T进行交互，返回应答。返回html内容HttpResponse，也可使用重定向redirect
+
+======================================================
+django-admin startproject mysite
+cd mysite
+python manage.py startapp firstapp
+
+编辑mysite\settings.py，添加app
+编辑mysite\settings.py, 修改
+
+
+修改firstapp\models.py:
+class People(models.Model):
+    name = models.CharField(null=True, blank=True, max_length=200)
+    job = models.CharField(null=True, blank=True, max_length=200)
+	
+python manage.py makemigrations  #生成迁移文件
+python manage.py migrate  #执行迁移文件
+python manage.py runserver
+
+
+
+
+python manage.py shell
+
+
+ 
+
+======================================
+创建管理员：
+修改setting.py:
+LANGUAGE_CODE = 'zh-hans'
+
+TIME_ZONE = 'Asia/Shanghai'
+
+
+python manage.py createsuperuser
+python manage.py runserver
+
+http://localhost:8000/admin/
+
+
+
+
+
+==================================================
+视图函数：
+
+ORM: Object Relational Mapping，对象关系映射
+
+查询函数： 通过模型类.objects属性调用如下函数：
+
+all：返回查询集
+
+get：返回有且仅有一条数据，没有数据抛出DoesNotExist异常，返回多条抛出MultipleObjectsReturned异常
+
+filter: 返回满足查询条件的结果集
+
+exclude：返回不满足查询条件的结果集
+
+order_by: 对查询结果进行排序，例如
+BookInfo.objects.filter(btitle__contains='天龙').order_by('-id'), -表示降序排序
+BookInfo.objects.order_by('-id')
+
+
+
+查询条件：
+
+模型类属性名__条件名=值，例如属性名__contains、属性名__startswith、属性名__endswith、属性名__isnull、属性名__in、属性名__gt、属性名__lt、属性名__gte、属性名__lte
+
+解释：
+属性名__contains：是否包含
+属性名__startswith：是否以XX开头
+属性名__endswith： 是否以XX结尾
+属性名__isnull：属性名是否为空
+属性名__in： 范围查询
+属性名__gt： 大于， bpub_date__gt = date(1990,1,1)
+属性名__lt： 小于
+属性名__gte：大等于
+属性名__lte: 小等于
+
+
+日期查询：
+属性名__year: 根据年份查询
+属性名__month: 根据月份查询 
+属性名__day: 根据日查询 
+
+
+eg: BookInfo.objects.filter(btitle__contains='天龙')
+
+
+
+Q对象：用于条件之间的逻辑关系
+from django.db.models import Q
+例如：
+查询图书阅读量大于90，且评论量大于100的图书信息：BookInfo.objects.filter(bread__gt=90,bcomment__gt=100)
+查询图书阅读量大于90，或评论量大于100的图书信息：BookInfo.objects.filter(Q(bread__gt=90)|Q(bcomment__gt=100))
+查询图书阅读量不大于100的图书信息： BookInfo.objects.filter(~Q(bread__gt=100))
+
+
+F对象：用于类属性之间的比较
+from django.db.models import F
+例如：
+查询图书阅读量大于评论量的图书信息：     BookInfo.objects.filter(bread__gt=F('bcomment'))
+查询图书阅读量大于评论量2倍的图书信息：  BookInfo.objects.filter(bread__gt=F('bcomment')*2)
+
+
+聚合函数：aggregate：对查询结果进行聚合操作，返回结果是一个字典。
+
+from django.db.models import Sum,Count,Avg,Max,Min
+
+例如：
+查询所有图书的数目：BookInfo.objects.aggregate(Count('id'))
+
+
+count函数，返回的是一个数字：BookInfo.objects.filter(id__gt=10).count()
+
+
+
+可以对查询集进行切片，但不支持负数索引切片
+	books3[0]:  如果索引不存在，抛出IndexError异常
+	books3[0:1].get()：如果索引不存在，抛出DoesNotExist异常
+
+
+判断一个查询集中是否有数据：exists
+例如：books3 =BookInfo.objects.filter(id__gt=100)
+books3.exists()
+
+
+
+捕获URL参数：
+	进行url匹配时，把所需要捕获的部分设置成一个正则表达式组，这样django框架就会自动把匹配成功后相应组的内容作为参数传递给视图函数：
+	1.位置参数，参数名可以随意指定。例如：re_path('^books/(\d+)$', views.book_detail),
+	2.关键字参数：?P<组名>，视图函数中关键字参数名称必须和组名相同，例如
+	  re_path('^showarg/(?P<num>\d+)$', views.show_arg),
+
+	  def show_arg(request, num):
+		  return render(request, "book/showarg.html", {"num": num})
+		  
+		 
+request属性：
+path
+method
+encoding
+GET  
+POST       username = request.POST.get('username')     username = request.POST.getlist('username')
+FILES：   类似于字典的对象
+COOKIES
+session:  可读可写，类似于字典的对象，表示当前会话，只有当django启用会话支持时才可用。
+
+
+request.GET、request.POST是QueryDict对象
+==================================================================
+在一对多关系中，一侧所在的类叫一类，多侧对应的类叫多类，我们把在多类中定义的建立关联的属性称为关联属性。
+
+通过对象查询：
+由一查多：
+查询id为1的图书所关联的英雄信息：
+book = BookInfo.objects.filter(id=1)
+heros = book.heroinfo_set.all()
+
+由多查一：
+查询id为1的英雄关联的图书信息：
+hero = HeroInfo.objects.get(id=1)
+book = hero.hbook
+
+
+通过模型类实现关联查询（写关联条件的时候，如果类中没有关联属性，条件需要写对应的类名；如果类中有关联属性，那么直接写关联属性）：
+由一查多：
+查询id>1的图书关联的英雄信息：
+HeroInfo.objects.filter(hbook__id__gt=1)
+
+
+由多查一：
+查询图书信息，要求图书所关联的英雄描述中包含“八”：
+BookInfo.objects.filter(heroinfo__hcomment__contains='八')
+
+==================================================================
+插入、更新：调用对象的save方法
+删除： 调用对象的delete方法
+
+==================================================================
+
+自关联：
+
+class AreaInfo(models.Model):
+    title = models.CharField(max_length=20)
+    #关联属性，代表当前地区的父级地区
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
+
+
+	
+	
+	
+	
+	
+	
+==================================================================
+管理器类：models.Manager
+
+自定义管理器场景：
+1、修改查询结果集
+2、添加额外的方法
+
+例如：
+class BookInfoManager(models.Manager):
+    def all(self):
+        return super().all().filter(isDelete=False)
+
+    def create_book(self, btitle, bpub_date, bprice):
+        obj = self.model()   #self.model获取所在模型类的类名
+        obj.btitle = btitle
+        obj.bpub_date = bpub_date
+        obj.bprice = bprice
+        obj.save()
+        return obj
+	
+	
+BookInfo.object.all()
+BookInfo.object.create(btitle="雪山飞狐",bpub_date="1989-08-16")   #默认有个create方法，需要传关键字参数
+BookInfo.object.create_book("雪山飞狐","1989-08-16",9.9)
+	
+	
+
+=====================================================================================
+自定义表名，需要在模型类中定义一个元类Meta，在里面定义一个类属性db_table
+
+
+=====================================================================================
+模板：
+
+模板标签：
+{% for item in items %}
+	{{ item }}  #模板变量
+{% empty %}
+	<li>sorry ,no data in this li.</li>
+{% endfor %}
+
+
+
+静态模板标签的使用：
+在HTML最上方添加{% load static %}
+{% static 'files' %}  #静态模板标签
+<img src="{% static 'images/404.jpg' %}" alt="My image">
+
+
+
+生产环境配置static还需要进行以下配置：
+
+1.首先setttings.py里面设置STATIC_ROOT = os.path.join(BASE_DIR,'collectstatic')
+
+2.执行python manage.py collectstatic收集静态文件
+
+3.在urls.py里面添加路由映射
+  re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
+
+4.没有权限的修改权限
+
+5.settings.py里面的
+  DEBUG=False
+  ALLOWED_HOSTS = ["*"]
+
+6.python mange.py runserver 即可
+
+
+或者
+from django.contrib.staticfiles.views import serve
+from django.urls import re_path
+ 
+def static_serve(request, path, insecure=True, **kwargs):
+    return serve(request, path, insecure, **kwargs)
+ 
+urlpatterns = [
+  ...
+  re_path(r'^static/(?P<path>.*)$', static_serve, name='static'), # 添加这行
+]
+
+
+模板过滤器：
+{{ article.content |truncatewords:100 }}
+
+
+=============================================================
+$.ajax({
+	'url':'请求地址',
+	'type':'请求方式',
+	'dataType':'预期返回的数据格式'
+	}).success(function(){
+	//执行成功后的回调函数
+})
+
+ajax请求流程：
+1、发起ajax请求
+2、django视图函数进行处理，返回JsonResponse
+3、前端执行回调函数
+
+
+login_ajax.html:
+
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ajax登录页面</title>
+    <script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+    <script>
+        $(function () {
+			//绑定btnLogin的click事件
+            $('#btnLogin').click(function () {
+                // 1.获取用户名和密码
+                username = $('#username').val()
+                password = $('#password').val()
+                // 2.发起post ajax请求，/login_ajax_check, 携带用户名和密码
+                $.ajax({
+                    'url':'/login_ajax_check',
+                    'type': 'post',
+                    'data': {'username':username, 'password':password},
+                    'dataType': 'json'
+                }).success(function (data) {
+                    // 登录成功 {'res':1}
+                    // 登录失败 {'res':0}
+                    if (data.res == 0){
+                        $('#errmsg').show().html('用户名或密码错误')
+                    }
+                    else{
+                        // 跳转到首页
+                        location.href = '/index'
+                    }
+                })
+            })
+        })
+    </script>
+    <style>
+        #errmsg{
+            display: none;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<div>
+    用户名:<input type="text" id="username"><br/>
+    密码:<input type="password" id="password"><br/>
+    <input type="button" id="btnLogin" value="登录">
+    <div id="errmsg"></div>
+</div>
+</body>
+</html>
+
+视图函数：
+def login_ajax(request):
+    return render(request, "login_ajax.html")
+
+def login_ajax_check(request):
+    username = request.POST.get("username")
+    password = request.POST.get("password")
+
+    if username == "admin" and password == "123456":
+        return JsonResponse({"res": 1})
+    else:
+        return JsonResponse({"res": 0})
+		
+		
+=============================================================
+cookie：
+cookie是由服务器生成，保存在客户端的一小段文本信息
+cookie是有过期时间的，如果不指定，则默认关闭浏览器后cookie就会过期
+
+设置cookie，需要一个HttpResponse类的对象或者是它子类的对象
+
+浏览器发送给django服务器的cookie，存放在request.COOKIES
+
+
+def set_cookie(request):
+    response = HttpResponse("设置cookie")
+    response.set_cookie("num", "1", max_age=7*24*3600)
+    return response
+
+
+def get_cookie(request):
+    num = request.COOKIES.get("num")
+    return HttpResponse(num)
+	
+	
+session：
+1、存储在服务器端，request.session属性中
+2、session依赖于cookie来使用，客户端sessionid标识
+3、django session默认过期时间是两周
+
+
+session操作：
+1、设置session
+request.session["key"] = value
+
+2、读取session
+request.session.get("key",默认值)
+request.session.has_key("key")
+
+3、清除session，删除值部分
+request.session.clear()
+
+4、删除整条数据
+request.session.flush()
+
+5、删除session指定键值
+del request.session["key"]
+
+6、设置session超时时间
+request.session.set_expiry(value)
+如果value是一个正整数，那么会话在value秒后过期
+如果value设置为0，那么会话在浏览器关闭后过期
+如果value为None，那么会话过期时间为两周
+
+
+===========================================================

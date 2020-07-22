@@ -1,0 +1,81 @@
+pip3 install httprunner
+pip3 install locustio
+
+locusts -f config.json实际上是会生成一个locustfile.py
+
+无网页模式启动Locust，-c是设置并发用户数，-r是设置每秒进入用户数:
+locust -f locustfile.py --no-web -c 1000 -r 100
+
+
+
+使用Locust进行性能测试时，当一台单机不足以模拟所需的用户数量的时候，可以在多台机器上分布式的执行性能测试。
+
+首先，需要在主机下启动一个Locust实例后跟上--master参数。
+
+locust -f locustfile.py --master
+
+
+因为主节点无法操作别的节点，所以必须在其它机器上启动从属Locust节点，后面跟上--slave参数，以及 --master-host（指定主节点的IP /主机名）。
+
+locust -f locustfile.py --slave --master-host=192.168.0.14
+
+当然了主机和每台从属机器上必须具有Locust测试脚本
+
+option说明：
+
+-L：打印的日志级别，默认INFO。
+--csv=运行结果保存目录
+
+--master
+以主服务模式启动Locust，web界面打开也是以此机IP为地址。
+
+--master-bind-host=X.X.X.X
+（可选项）用于主服务指定一个ip地址
+
+--master-bind-port=5557
+（可选项）用于主服务设置一个固定的端口
+
+主节点的端口默认是5557，Locust启动会使用两个端口：一个是设置的端口，还会使用一个设置端口数+1的端口，因此，如果使用5557,locust将使用两个端口5557和5558。
+
+--slave
+以从属服务模式启动Locust
+
+--master-host=X.X.X.X
+（可选项）用于从属服务指定主服务的地址
+
+--master-port=5557
+（可选项）用于从属服务指定主服务的端口
+
+--run-time 或者  -t
+
+设置Locust实例运行多长时间，时间到了，停止实例
+
+--expect-slaves=X
+
+如果在没有Web UI的情况下运行Locust，在启动主节点时加上--expect-slaves指定选项，以指定预期连接的从节点数。然后，在开始测试之前，将等待这些从属节点连接。
+
+master:
+locust -f locustfile.py --master --expect-slaves=2  --reset-stats --no-web -c 1000 -r 100 -t 5m --csv=result
+
+host:
+locust -f locustfile.py --slave  --master-host=172.16.0.91 --reset-stats
+
+
+
+
+Locust流程，测试开始后，每个虚拟用户(Locust实例）运行逻辑都会遵守如下规律：
+
+    先执行WebsiteTasks中的on_start（只执行一次），作为初始化；
+    从WebsiteTasks中随机挑选（如果定义了任务间的权重关系，那么就按照权重关系随机挑选）一个任务执行；
+    根据Locust类中min_wait和max_wait定义的间隔时间范围（如果TaskSet类中也定义了min_wait或者max_wait，以TaskSet中的优先），在时间范围中随机取一个值，休眠等待；
+    重复2~3步骤，直到测试任务终止；
+
+	
+ 通过@task()装饰的方法为一个事务。方法的参数用于指定该行为的执行权重。参数越大每次被虚拟用户执行的概率越高。如果不设置默认为1。
+ 
+ 
+ 
+ locust子类中设置的数据是全局的，为list时，使用自增方式取数据，并发运行时会出现取到的数据重复的情况，如果对数据唯一性有要求，使用python的queue队列的数据结构即可
+taskset子类中设置的数据是局部的，即每一个虚拟用户都会有一个属于自己的这个变量
+
+	

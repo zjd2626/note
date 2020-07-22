@@ -1,0 +1,102 @@
+查找app入口：
+	adb logcat |grep -i displayed
+	或者 adb logcat |grep -i start
+	
+adb shell getprop ro.build.version.release	
+
+adb shell dumpsys activity top
+adb shell dumpsys activity activities
+
+adb shell pm clear com.prprp.prprp  #清除数据
+
+adb shell dumpsys package com.prprp.prprp
+
+启动应用：
+	
+	adb shell am start -W  -n com.prprp.prprp/.activity.SplashActivity -S
+	-W: wait for launch to complete
+	-n: COMPONENT_NAME
+	-S: restart
+	
+停止app：
+	adb shell am force-stop package
+	
+热启动：
+	adb shell input keyevent 3  #back键
+	
+
+
+
+ 
+cpu:
+	adb shell dumpsys cpuinfo|grep com.prprp.prprp
+	
+流量监控：
+	adb shell ps |grep com.prprp.prprp
+	adb shell cat /proc/pid/net/dev
+	
+电量：
+	adb shell dumpsys battery set status 1  #取消充电状态
+	adb shell dumpsys battery
+	
+	
+Appium Desired Capabilities:
+{
+    "platformName": "iOS",
+    "platformVersion": "11.0",
+    "deviceName": "iPhone 7",
+    "automationName": "XCUITest",
+    "app": "/path/to/my.app"
+}
+
+platformName     iOS, Android
+deviceName    
+
+
+android only:
+	appPackage
+	appActivity
+	autoGrantPermissions
+	
+	
+pip3 install appium-python-client
+文档：github.com/appium/python-client
+
+
+
+元素属性：
+	location
+	size
+	get_attribute("class")
+    get_attribute("name")   #返回text和content-desc的值
+    get_attribute("text")
+    get_attribute("resource-id")
+	get_attribute("content-desc")
+    get_attribute("package")
+	
+xpath定位：
+	//*[@text='登录']
+	//*[contains(@resource-id,'login')]
+	//*[contains(@resource-id,'login') and contains(@text,'登录')]
+	
+	
+toast元素定位：
+推荐： //*[@class='android.widget.Toast']
+//*[contains(@text,'xxx')]
+
+
+滚屏定位元素：
+driver.find_element_by_android_uiautomator('new UiScrollable(new UiSelector().scrollable(true).instance(0)).scrollIntoView(new UiSelector().text("WebView").instance(0));')
+
+
+webview:
+android 默认浏览器，chrome version：
+adb shell dumpsys package com.android.chrome |grep versionName
+
+
+adb shell cat /proc/net/unix |grep web
+adb shell ps pid
+
+chrome://inspect
+
+driver.switch_to.context(driver.contexts[1])

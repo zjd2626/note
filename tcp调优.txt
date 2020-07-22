@@ -1,0 +1,150 @@
+[root@VM_0_33_centos ~]# vi /etc/sysctl.conf
+kernel.printk = 5
+
+
+net.ipv4.ip_local_port_range = 1024 65535
+net.ipv4.tcp_timestamps = 1
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_tw_recycle = 0
+
+
+net.ipv4.tcp_keepalive_time = 900 # tcp连接多少秒后没有数据报文时启动探测报文
+net.ipv4.tcp_keepalive_intvl = 30 # tcp报文探测时间间隔, 单位s
+net.ipv4.tcp_keepalive_probes = 3 # 探测次数
+net.ipv4.tcp_fin_timeout = 30 # 保持fin-wait-2 状态多少秒
+net.ipv4.tcp_max_tw_buckets = 300000  # 最多允许time-wait数量
+net.ipv4.tcp_max_orphans = 131072    # 可处理最多孤儿socket数量，超过则警告，每个孤儿socket占用64KB空间
+net.ipv4.tcp_syncookies = 0
+net.ipv4.tcp_max_syn_backlog = 16384 # syn队列的最大连接数，当使用syncookies无效，默认128
+
+net.core.somaxconn = 10240  # 定义了系统中每一个端口最大的监听队列的长度
+net.core.optmem_max = 819200   # 表示每个套接字所允许的最大缓冲区的大小。
+net.core.netdev_max_backlog = 41960 # 网卡数据包队列长度  
+
+# 默认tcp数据接受窗口大小
+net.core.rmem_default = 262144  
+net.core.wmem_default = 262144  
+net.core.rmem_max = 16777216  
+net.core.wmem_max = 16777216
+
+
+#确定TCP栈内存如何使用，每个值的单位都是内存页（通常是4KB）。第一个值是内存使用的下限；第二个值是内存压力模式开始对缓冲区使用应用压力的上限；第三个值是内存使用的上限。在这个层次上可以将报文丢弃，从而减少对内存的使用。对于较大的BDP可以增大这些值（注意，其单位是内存页而不是字节）
+net.ipv4.tcp_mem = 786432 4194304 8388608
+
+# 读, 第一个值为socket缓存区分配最小字节, 第二个，第三个分别被rmem_default, rmem_max覆盖
+net.ipv4.tcp_rmem = 4096 4096 4206592
+
+# 写, 第一个值为socket缓存区分配最小字节, 第二个，第三个分别被wmem_default, wmem_max覆盖
+net.ipv4.tcp_wmem = 4096 4096 4206592
+
+
+net.netfilter.nf_conntrack_max = 2048576
+                                 
+
+sysctl -p生效
+
+
+net.ipv4.tcp_tw_recycle = 0 （不要开启，现在互联网NAT结构很多，可能直接无法三次握手）
+
+
+——————————————————————————————————————————
+最大文件打开数
+vi /etc/security/limits.conf
+# 添加以下参数
+root soft nofile 1048000
+root hard nofile 1048000
+
+root soft nproc 1048000
+root hard nproc 1048000
+
+root soft core unlimited
+root hard core unlimited
+
+* soft nofile 1048000
+* hard nofile 1048000
+
+* soft nproc 1048000
+* hard nproc 1048000
+
+* soft core unlimited
+* hard core unlimited
+
+——————————————————————————————————————————
+
+tcp_tw_recycle：顾名思义就是回收TIME_WAIT连接。可以说这个内核参数已经变成了大众处理TIME_WAIT的万金油，如果你在网络上搜索TIME_WAIT的解决方案，十有八九会推荐设置它，不过这里隐藏着一个不易察觉的陷阱：
+
+当多个客户端通过NAT方式联网并与服务端交互时，服务端看到的是同一个IP，也就是说对服务端而言这些客户端实际上等同于一个，可惜由于这些客户端的时间戳可能存在差异，于是乎从服务端的视角看，便可能出现时间戳错乱的现象，进而直接导致时间戳小的数据包被丢弃。参考：tcp_tw_recycle和tcp_timestamps导致connect失败问题。
+
+tcp_tw_reuse：顾名思义就是复用TIME_WAIT连接。当创建新连接的时候，如果可能的话会考虑复用相应的TIME_WAIT连接。通常认为「tcp_tw_reuse」比「tcp_tw_recycle」安全一些，这是因为一来TIME_WAIT创建时间必须超过一秒才可能会被复用；二来只有连接的时间戳是递增的时候才会被复用。官方文档里是这样说的：如果从协议视角看它是安全的，那么就可以使用。这简直就是外交辞令啊！按我的看法，如果网络比较稳定，比如都是内网连接，那么就可以尝试使用。
+
+不过需要注意的是在哪里使用，既然我们要复用连接，那么当然应该在连接的发起方使用，而不能在被连接方使用。举例来说：客户端向服务端发起HTTP请求，服务端响应后主动关闭连接，于是TIME_WAIT便留在了服务端，此类情况使用「tcp_tw_reuse」是无效的，因为服务端是被连接方，所以不存在复用连接一说。让我们延伸一点来看，比如说服务端是PHP，它查询另一个MySQL服务端，然后主动断开连接，于是TIME_WAIT就落在了PHP一侧，此类情况下使用「tcp_tw_reuse」是有效的，因为此时PHP相对于MySQL而言是客户端，它是连接的发起方，所以可以复用连接。
+
+说明：如果使用tcp_tw_reuse，请激活tcp_timestamps，否则无效。
+————————————————
+版权声明：本文为CSDN博主「努力的土豆」的原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/twt936457991/article/details/90574284
+
+
+
+
+
+
+
+
+
+二、概念解析
+
+TIME_WAIT是有友好的，不是多余的，是主动关闭TCP连接的一方在调用socker的close操作后最终会进入TIME_WAIT状态。服务器在处理客户端请求的时候，如果你的程序设计为服务器主动关闭，那么你才有可能需要关注这个TIMEWAIT状态过多的问题。如果你的服务器设计为被动关闭，那么你首先要关注的是CLOSE_WAIT。
+
+换句话说：在一台负载均衡的服务器上(以Nginx为例)，客户端向Nginx的请求，作为服务器来看属于被动连接；Nginx向Web服务器的请求属于主动连接。在讨论TIME_WAIT优化时，我们应该关注的是主动连接，即Nginx对Web服务器的连接。
+
+
+三、TIME_WAIT作用
+
+1、防止前一个连接延迟的数据被后面复用的连接错误的接收；
+
+2、可靠的关闭TCP连接；
+
+
+五、打开net.ipv4.tcp_tw_recycle参数的副作用
+
+TIME_WAIT的存在是很重要的，如果强制忽略TIME_WAIT，还是有很高的机率，造成数据粗乱，或者短暂性的连接失败。比较直接的现象是，通过NAT后的IP大量访问服务的时候容易出现静置几分钟后连接失败或者多个客户端同时访问有的访问频繁失败的情况。
+
+还有一种情况是：在 客户端-服务器 一对一的时候，没有任何问题，但是当源IP是经过NAT后的地址或服务器在负载均衡器后面时，源地址为同一ip假如恰巧先后两次连接源端口相同，这台服务器先后收到两个包，第一个包的timestamp被服务器保存着，第二个包又来了，一对比，发现第二个包的timestamp比第一个还老——客户端时间不一致。服务器基于PAWS，判断第二个包是重复报文，丢弃之。反映出来的情况就是在服务器上抓包，发现有SYN包，但服务器就是不回ACK包，因为SYN包已经被丢弃了。可用如下命令验证，查看输出里面的packets rejects in established connections because of timestamp一项的数量变化。
+netstat -s | grep timestamp
+
+六、net.ipv4.tw_recycle如何配置
+
+写了这么多，那么tw_recycle参数到底该怎么用呢？在这里，引用老男孩博客里给出的两个典型场景的配置方案作为参考
+方案一：负载均衡服务器首先关闭连接
+
+在这种情况下，因为负载均衡服务器对Web服务器的连接（注意，负载均衡器向Web服务器发起的主动连接），TIME_WAIT大都出现在负载均衡服务器上，所以，在负载均衡服务器上的配置：
+
+    net.ipv4.tcp_tw_reuse = 1 //尽量复用连接
+
+    net.ipv4.tcp_tw_recycle = 0 //不能保证客户端不在NAT的网络
+
+    在Web服务器上的配置为：
+
+    net.ipv4.tcp_tw_reuse = 1 //这个配置主要影响的是Web服务器到DB服务器的连接复用
+
+    net.ipv4.tcp_tw_recycle：
+    设置成1和0都没有任何意义。想一想，在负载均衡和它的连接中，它是服务端，但是TIME_WAIT出现在负载均衡服务器上；它和DB的连接，它是客户端，recycle对它并没有什么影响，关键是reuse
+
+方案二：Web服务器首先关闭来自负载均衡服务器的连接
+
+在这种情况下，Web服务器变成TIME_WAIT的重灾区。负载均衡对Web服务器的连接，由Web服务器首先关闭连接，TIME_WAIT出现在Web服务器上；Web服务器对DB服务器的连接，由Web服务器关闭连接，TIME_WAIT也出现在它身上，此时，负载均衡服务器上的配置：
+
+    net.ipv4.tcp_tw_reuse：0 或者 1 都行，都没有实际意义
+
+    net.ipv4.tcp_tw_recycle=0 //一定是关闭recycle
+
+    在Web服务器上的配置：
+
+    net.ipv4.tcp_tw_reuse = 1 //这个配置主要影响的是Web服务器到DB服务器的连接复用
+
+    net.ipv4.tcp_tw_recycle=1 //由于在负载均衡和Web服务器之间并没有NAT的网络，可以考虑开启recycle，加速由于负载均衡和Web服务器之间的连接造成的大量TIME_WAIT
+	
+	
+
+
